@@ -1,7 +1,11 @@
-language: r
+language: c
 os:
 - linux
 - osx
+
+before_install:
+- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install r-base; fi
+- if [ $TRAVIS_OS_NAME = osx ]; then brew install r; fi
 
 script:
   - make

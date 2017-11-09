@@ -1,5 +1,4 @@
 R64=`R.exe RHOME`/bin/x64
-export PKG_CFLAGS=-DKXVER=3
 export PATH=$R64:"$PATH"
 echo $PATH
 rm -f base.o

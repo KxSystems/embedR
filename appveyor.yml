@@ -20,7 +20,8 @@ environment:
     R_ARCH: i386
 
 build_script:
-- cmd: R.exe CMD SHLIB -o w%BITS%/embedr.dll embedr.c w%BITS/q.a
+- cmd: mkdir w%BITS%
+- cmd: R.exe CMD SHLIB -o w%BITS%/embedr.dll embedr.c w%BITS%/q.a
 
 after_build:
 - cmd: mkdir embedr

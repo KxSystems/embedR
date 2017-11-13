@@ -27,7 +27,7 @@ SRC=embedr.c
 TGT=$(addsuffix /embedr.so,$(QARCH))
 
 all:
-	mkdir $(QARCH)
+	mkdir -p $(QARCH)
 	R CMD gcc -o $(TGT) $(CFLAGS) $(R_INCLUDES) $(SRC) $(LIBS) 
 
 install:

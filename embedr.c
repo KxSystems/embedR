@@ -14,9 +14,9 @@
 #endif
 #include <R_ext/Parse.h>
 #define KXVER 3
-#include "c/k.h"
+#include "src/k.h"
 
-#include "c/common.c"
-#include "c/rserver.c"
+#include "src/common.c"
+#include "src/rserver.c"
 
 int R_SignalHandlers = 0;

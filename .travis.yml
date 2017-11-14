@@ -9,3 +9,18 @@ before_install:
 
 script:
   - make
+  - echo "Preparing version $TRAVIS_BRANCH-$TRAVIS_COMMIT"
+  - mkdir embedr; cp -r rinit.q rtest.q l32 l64 m32 m64 embedr/ || true;
+  - echo "$TRAVIS_BRANCH-$TRAVIS_COMMIT" > embedr/VERSION.embedr; 
+  - cp LICENSE embedr/LICENSE.embedr; cp README.md embedr/README.embedr;
+  - tar czvf embedr_$TRAVIS_OS_NAME-$TRAVIS_BRANCH.tar.gz embedr
+  - echo "Packaged as embedr_$TRAVIS_OS_NAME-$TRAVIS_BRANCH.tar.gz"
+deploy:
+  provider: releases
+  api_key:
+    secure: aoNTbz6xhvKKTEBTowbReU/yXiVRIQsXEp3qSDRTQnKjKo8NiuqUKwKKFXIe3H7CeghBd1TGWedowH4YWud6I2iSCGBcSW2EuAuSMJg5aTO5NPnlRU2Zoh8WuLbeBQMYmFcOXR5fCzZa/oiHkKjw5sGJtblIa28A/DgXLW9kkAT+zDD6BT9wYFOjfDFtIETlabKsxb7rpTUXF2Ot9AZsdycdptDpr1x9xH4HGSdwOHEnkXMgjzM2vCtGNizuqAK1mI0DZhH0s4RBquFlQdL+kg5aExs3L7ic9Y3KagqDF5QHd+qPaRcb5Dn4SEruoOp+jco+h+T2hydtqprAoRGnODH1sp1k63kZrVrWqTKrPpKuVuaBnwnOU8I9GwbFdqeMGhdV1Jgwlj2e7DDY4aPpb7dU1dNvwOtA8MrDqzBlJwNkxyVbYb0FIfliAw5EQXaiJ0XiMhtAm0lAVuRROdizjXXfIemEXURJL6fpSsVdZRQuuPMCM6UlABCPOCQ8cTYdrTaOVjxJ4ltcY8ya/8dMtxsBLLQLlbNWeLXgAUzFq/Xc52d7H1G4rbeVa+J7WvcMKCofZzjX0qpQ8zX5G5VPYFz9HFKxQ8cFXpcMjk7o1YhhBANGy6lkhtCK1yfHH1FVfVi7gMVrgWHNkTitC6gEMAp9SvNOFrEeijqIbfZcFAw=
+  file_glob: true
+  file: embedr_*.tar.gz
+  skip_cleanup: true
+  on:
+    tags: true

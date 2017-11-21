@@ -13,6 +13,7 @@
 #define closesocket(x) close(x)
 #endif
 #include <R_ext/Parse.h>
+#include "src/socketpair.c"
 #define KXVER 3
 #include "src/k.h"
 

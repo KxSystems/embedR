@@ -1,7 +1,6 @@
 /*
  * R server for Q
  */
-
 /*
  * The public interface used from Q.
  * https://cran.r-project.org/doc/manuals/r-release/R-ints.pdf
@@ -12,10 +11,6 @@ K rclose(K x);
 K rcmd(K x);
 K rget(K x);
 K rset(K x,K y);
-K revents(K x){
-	R_ProcessEvents();
-	return (K)0;
-}
 
 ZK rexec(int type,K x);
 ZK kintv(J len, int *val);
@@ -365,6 +360,24 @@ ZK kdoublea(J len, int rank, int *shape, double *val)
 /*
  * The public interface used from Q.
  */
+static I spair[2];
+void* pingthread;
+
+V* pingmain(V* v){
+	while(1){
+		nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=1000000}, NULL);
+		send(spair[1], "M", 1, 0);
+	}
+}
+
+K processR(I d){
+	char buf[1024];
+  /*MSG_DONTWAIT - set in sd1(-h,...) */
+  while(0 < recv(d, buf, sizeof(buf), 0))
+    ;
+	R_ProcessEvents();
+	return (K)0;
+}
 
 /*
  * ropen argument is empty, 0 or 1
@@ -380,6 +393,18 @@ K ropen(K x)
 	int argc = sizeof(argv)/sizeof(argv[0]);
 	s=Rf_initEmbeddedR(argc, argv);
 	if (s<0) return krr("open failed");
+	if(dumb_socketpair(spair, 1) == -1){
+    return krr("Init failed for socketpair");
+  }
+	sd1(-spair[0], &processR);
+	#ifndef WIN32
+ 	pthread_t t;
+  if(pthread_create(&t, NULL, pingmain, NULL))
+     perror("poller_thread");
+   pingthread= &t;
+ #else
+   _beginthread(pingmain, 0, NULL);
+ #endif
 	ROPEN=mode;
 	return ki(ROPEN);
 }

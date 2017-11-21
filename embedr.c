@@ -6,14 +6,20 @@
 #include <R.h>
 #include <Rdefines.h>
 #include <Rembedded.h>
+#include <time.h>
 #ifndef WIN32
 #include <Rinterface.h>
-#endif
-#ifdef WIN32
+#include <pthread.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+//#include <unistd.h>
+#else
 #define closesocket(x) close(x)
 #endif
+
 #include <R_ext/Parse.h>
 #include "src/socketpair.c"
+
 #define KXVER 3
 #include "src/k.h"
 

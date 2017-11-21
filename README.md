@@ -38,9 +38,7 @@ The library has four main methods:
 - `Rset`: set a variable in the R memory space
 
 ### Interactive plotting
-If using interactive plotting, you have to take care of some extras.
-1. Call `Reventloop[]`. Note that this will override timer and `.z.ts`. It will give R library some time to process graphics event. macOS and Windows only.
-2. To plot with `lattice` and/or `ggplot2` you will need to call `print` on chart object. 
+If using interactive plotting with `lattice` and/or `ggplot2` you will need to call `print` on chart object. 
 
 ## Examples
 

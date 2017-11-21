@@ -28,7 +28,7 @@ TGT=$(addsuffix /embedr.so,$(QARCH))
 
 all:
 	mkdir -p $(QARCH)
-	R CMD gcc -o $(TGT) $(CFLAGS) $(R_INCLUDES) $(SRC) $(LIBS) 
+	R CMD gcc -o $(TGT) $(CFLAGS) $(R_INCLUDES) $(SRC) $(LIBS) -std=c11 -Wall
 
 install:
 	install $(TGT) $(Q)

@@ -30,6 +30,13 @@ For example, a script to load q might be:
   rlwrap q "$@"
 ```
 
+The library has four main methods:
+
+- `Ropen`: Initialise embedded R. Optional to call. Allows to set verbose mode as `Ropen 1`.
+- `Rcmd`: run an R command, do not return a result
+- `Rget`: run an R command, return the result to q
+- `Rset`: set a variable in the R memory space
+
 ### Interactive plotting
 If using interactive plotting, you have to take care of some extras.
 1. Call `Reventloop[]`. Note that this will override timer and `.z.ts`. It will give R library some time to process graphics event. macOS and Windows only.

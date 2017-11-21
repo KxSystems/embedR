@@ -375,7 +375,7 @@ K ropen(K x)
 {
 	if (ROPEN >= 0) return ki(ROPEN);
 	int s,mode=0;	char *argv[] = {"R","--slave"};
-	if (x && -KI ==x->t) mode=x->i!=0;
+	if (x && (-KI ==x->t || -KJ ==x->t)) mode=(x->t==-KI?x->i:x->j)!=0;
 	if (mode) argv[1] = "--verbose";
 	int argc = sizeof(argv)/sizeof(argv[0]);
 	s=Rf_initEmbeddedR(argc, argv);
@@ -395,7 +395,7 @@ static char* ParseError[5]={"null","ok","incomplete","error","eof"};
 
 K rexec(int type,K x)
 {
-	if (ROPEN == 0) ropen(ki(0));
+	if (ROPEN < 0) ropen(NULL);
 	SEXP e, p, r, xp;
 	char rerr[256];extern char	R_ParseErrorMsg[256];
 	int error;
@@ -423,7 +423,7 @@ K rexec(int type,K x)
 }
 
 K rset(K x,K y) {
-	if (ROPEN == 0) ropen(ki(0));
+	if (ROPEN < 0) ropen(NULL);
 	ParseStatus status;
 	SEXP txt, sym, val;
 	char rerr[256];extern char	R_ParseErrorMsg[256];

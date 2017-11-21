@@ -24,7 +24,7 @@ ZK kdoublev(J len, double *val);
 ZK kdoublea(J len, int rank, int *shape, double *val);
 ZK from_any_robject(SEXP sxp);
 
-__thread int ROPEN=0; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
+__thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
 
 /*
  * convert R SEXP into K object.
@@ -371,39 +371,22 @@ ZK kdoublea(J len, int rank, int *shape, double *val)
  * empty,0   --slave (R is quietest)
  * 1         --verbose
  */
-
 K ropen(K x)
 {
-	if (ROPEN == 1) return ki(0);
-	int s,mode=0;
-	if (x && -KI ==x->t) mode=x->i;
-	char *argv[] = {"R","--slave"};
+	if (ROPEN >= 0) return ki(ROPEN);
+	int s,mode=0;	char *argv[] = {"R","--slave"};
+	if (x && -KI ==x->t) mode=x->i!=0;
 	if (mode) argv[1] = "--verbose";
 	int argc = sizeof(argv)/sizeof(argv[0]);
 	s=Rf_initEmbeddedR(argc, argv);
 	if (s<0) return krr("open failed");
-	ROPEN=1;
-	return ki(0);
+	ROPEN=mode;
+	return ki(ROPEN);
 }
 
-/*
- * in practice, errors occur if R is closed, then re-opened
- * these do not seem to affect later use
- */
 // note that embedded R can be initialised once. No open/close/open supported 
 // http://r.789695.n4.nabble.com/Terminating-and-restarting-an-embedded-R-instance-possible-td4641823.html
-K rclose(K x)
-{
-	if (ROPEN == 1) {
-#ifndef WIN32
-		fpu_setup(FALSE);
-#endif
-		Rf_endEmbeddedR(0);	// exit R without error(non-fatal)
-	}
-	ROPEN=0;
-	return ki(0);
-}
-
+K rclose(K x){R NULL;}
 K rcmd(K x) { return rexec(0,x); }
 K rget(K x) { return rexec(1,x); }
 

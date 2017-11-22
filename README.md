@@ -13,14 +13,17 @@ environment     | action
 ----------------|---------------------------------------------------------------------------------------
 Linux           | `tar xzvf embedr_linux-v*.tar.gz -C $QHOME --strip 1`
 macOS           | `tar xzvf embedr_osx-v*.tar.gz -C $QHOME --strip 1`
-Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`
+Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively. 
 
 
 ## Calling R
 
 When calling R, you need to set `R_HOME`. Required are:
 ```
-  R_HOME               - R home path      (e.g. /usr/lib/R)
+# Linux/macOS
+export R_HOME=`R RHOME`
+# Windows
+for /f "delims=" %a in ('R RHOME') do @set R_HOME=%a
 ```
 For example, a script to load q might be:
 

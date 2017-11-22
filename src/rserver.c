@@ -400,11 +400,12 @@ K ropen(K x)
 	#ifndef WIN32
  	pthread_t t;
   if(pthread_create(&t, NULL, pingmain, NULL))
-     perror("poller_thread");
-   pingthread= &t;
- #else
-   _beginthread(pingmain, 0, NULL);
- #endif
+     R krr("poller_thread");
+  pingthread= &t;
+ 	#else
+  if(_beginthreadex(0,0,pingmain,NULL,0,0)==-1)
+   	R krr("poller_thread")
+	#endif
 	ROPEN=mode;
 	return ki(ROPEN);
 }

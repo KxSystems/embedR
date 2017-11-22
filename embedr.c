@@ -10,12 +10,12 @@
 #ifndef WIN32
 #include <Rinterface.h>
 #include <pthread.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 //#include <unistd.h>
 #else
+#include <windows.h>
 #include <process.h> 
-#define closesocket(x) close(x)
 #endif
 
 #include <R_ext/Parse.h>

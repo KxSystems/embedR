@@ -14,6 +14,7 @@
 #include <sys/types.h>
 //#include <unistd.h>
 #else
+#include <process.h> 
 #define closesocket(x) close(x)
 #endif
 

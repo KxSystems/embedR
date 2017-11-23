@@ -404,7 +404,7 @@ K ropen(K x)
   pingthread= &t;
  	#else
   if(_beginthreadex(0,0,pingmain,NULL,0,0)==-1)
-   	R krr("poller_thread")
+   	R krr("poller_thread");
 	#endif
 	ROPEN=mode;
 	return ki(ROPEN);

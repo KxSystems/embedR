@@ -25,13 +25,6 @@ export R_HOME=`R RHOME`
 # Windows
 for /f "delims=" %a in ('R RHOME') do @set R_HOME=%a
 ```
-For example, a script to load q might be:
-
-```
-  #!/bin/bash
-  export R_HOME=`R RHOME`
-  rlwrap q "$@"
-```
 
 The library has four main methods:
 

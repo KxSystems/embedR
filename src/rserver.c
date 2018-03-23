@@ -285,10 +285,10 @@ static char * getkstring(K x)
 	case -KC :
 		s = calloc(2,1); s[0] = xg; break;
 	case KC :
-		s = calloc(1+xn,1); memcpy(s, xG, xn); break;
-	case -KS :
+		s = calloc(1+xn,1); memmove(s, xG, xn); break;
+	case -KS : // TODO: xs is already 0 terminated and fixed. can just return xs
 		len = 1+strlen(xs);
-		s = calloc(len,1); memcpy(s, xs, len); break;
+		s = calloc(len,1); memmove(s, xs, len); break;
 	default : krr("invalid name");
 	}
 	return s;

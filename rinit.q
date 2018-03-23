@@ -5,7 +5,6 @@ Ropen:`embedr 2:(`ropen;1)
 Rcmd0:`embedr 2:(`rcmd;1)
 Rget0:`embedr 2:(`rget;1)
 Rset0:`embedr 2:(`rset;2)
-Revents0:`embedr 2:(`revents;1)
 Rcmd:{Rcmd0 x}
 Rget:{r:Rget0 x;Rconv r}
 Rset:{Rset0[x;y]}
@@ -32,4 +31,3 @@ Rinstall:{[pkg]
   }
 Roff:{Rcmd "dev.off()"}
 Rnew:{Rcmd "dev.new(noRStudioGD=TRUE)"}
-Reventloop:{.z.ts:Revents0;system"t 1000";}

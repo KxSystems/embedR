@@ -1,7 +1,5 @@
 //\l rinit.q
 
-Reventloop[];
-
 basedir:`:.^hsym `$last -2 _ get{}
 datafile:` sv first[` vs basedir],`pcd2014v1.csv
 if[()~key datafile;'"Data file not found. See README.md"]

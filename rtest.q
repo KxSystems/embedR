@@ -1,7 +1,7 @@
 / test R server for Q
 \l rinit.q
 
-Ropen 0
+Ropen 1   // set verbose mode
 
 Rcmd "a=array(1:24,c(2,3,4))"
 Rget "dim(a)"

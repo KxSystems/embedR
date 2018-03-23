@@ -28,10 +28,13 @@ TGT=$(addsuffix /embedr.so,$(QARCH))
 
 all:
 	mkdir -p $(QARCH)
-	R CMD gcc -o $(TGT) $(CFLAGS) $(R_INCLUDES) $(SRC) $(LIBS) 
+	R CMD gcc -o $(TGT) $(CFLAGS) $(R_INCLUDES) $(SRC) $(LIBS) -Wall
 
 install:
 	install $(TGT) $(Q)
 
 clean:
 	rm -rf $(TGT)
+
+fmt:
+	clang-format -style=file embedr.c src/rserver.c src/qserver.c src/common.c -i

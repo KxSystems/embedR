@@ -13,27 +13,28 @@ environment     | action
 ----------------|---------------------------------------------------------------------------------------
 Linux           | `tar xzvf embedr_linux-v*.tar.gz -C $QHOME --strip 1`
 macOS           | `tar xzvf embedr_osx-v*.tar.gz -C $QHOME --strip 1`
-Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`
+Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively. 
 
 
 ## Calling R
 
 When calling R, you need to set `R_HOME`. Required are:
 ```
-  R_HOME               - R home path      (e.g. /usr/lib/R)
+# Linux/macOS
+export R_HOME=`R RHOME`
+# Windows
+for /f "delims=" %a in ('R RHOME') do @set R_HOME=%a
 ```
-For example, a script to load q might be:
 
-```
-  #!/bin/bash
-  export R_HOME=`R RHOME`
-  rlwrap q "$@"
-```
+The library has four main methods:
+
+- `Ropen`: Initialise embedded R. Optional to call. Allows to set verbose mode as `Ropen 1`.
+- `Rcmd`: run an R command, do not return a result
+- `Rget`: run an R command, return the result to q
+- `Rset`: set a variable in the R memory space
 
 ### Interactive plotting
-If using interactive plotting, you have to take care of some extras.
-1. Call `Reventloop[]`. Note that this will override timer and `.z.ts`. It will give R library some time to process graphics event. macOS and Windows only.
-2. To plot with `lattice` and/or `ggplot2` you will need to call `print` on chart object. 
+If using interactive plotting with `lattice` and/or `ggplot2` you will need to call `print` on chart object. 
 
 ## Examples
 

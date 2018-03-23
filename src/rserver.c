@@ -1,7 +1,6 @@
 /*
  * R server for Q
  */
-
 /*
  * The public interface used from Q.
  * https://cran.r-project.org/doc/manuals/r-release/R-ints.pdf
@@ -12,10 +11,6 @@ K rclose(K x);
 K rcmd(K x);
 K rget(K x);
 K rset(K x,K y);
-K revents(K x){
-	R_ProcessEvents();
-	return (K)0;
-}
 
 ZK rexec(int type,K x);
 ZK kintv(J len, int *val);
@@ -24,7 +19,7 @@ ZK kdoublev(J len, double *val);
 ZK kdoublea(J len, int rank, int *shape, double *val);
 ZK from_any_robject(SEXP sxp);
 
-__thread int ROPEN=0; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
+__thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
 
 /*
  * convert R SEXP into K object.
@@ -290,10 +285,10 @@ static char * getkstring(K x)
 	case -KC :
 		s = calloc(2,1); s[0] = xg; break;
 	case KC :
-		s = calloc(1+xn,1); memcpy(s, xG, xn); break;
-	case -KS :
+		s = calloc(1+xn,1); memmove(s, xG, xn); break;
+	case -KS : // TODO: xs is already 0 terminated and fixed. can just return xs
 		len = 1+strlen(xs);
-		s = calloc(len,1); memcpy(s, xs, len); break;
+		s = calloc(len,1); memmove(s, xs, len); break;
 	default : krr("invalid name");
 	}
 	return s;
@@ -365,45 +360,59 @@ ZK kdoublea(J len, int rank, int *shape, double *val)
 /*
  * The public interface used from Q.
  */
+static I spair[2];
+void* pingthread;
+
+V* pingmain(V* v){
+	while(1){
+		nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=1000000}, NULL);
+		send(spair[1], "M", 1, 0);
+	}
+}
+
+K processR(I d){
+	char buf[1024];
+  /*MSG_DONTWAIT - set in sd1(-h,...) */
+  while(0 < recv(d, buf, sizeof(buf), 0))
+    ;
+	R_ProcessEvents();
+	return (K)0;
+}
 
 /*
  * ropen argument is empty, 0 or 1
  * empty,0   --slave (R is quietest)
  * 1         --verbose
  */
-
 K ropen(K x)
 {
-	if (ROPEN == 1) return ki(0);
-	int s,mode=0;
-	if (x && -KI ==x->t) mode=x->i;
-	char *argv[] = {"R","--slave"};
+	if (ROPEN >= 0) return ki(ROPEN);
+	int s,mode=0;	char *argv[] = {"R","--slave"};
+	if (x && (-KI ==x->t || -KJ ==x->t)) mode=(x->t==-KI?x->i:x->j)!=0;
 	if (mode) argv[1] = "--verbose";
 	int argc = sizeof(argv)/sizeof(argv[0]);
 	s=Rf_initEmbeddedR(argc, argv);
 	if (s<0) return krr("open failed");
-	ROPEN=1;
-	return ki(0);
+	if(dumb_socketpair(spair, 1) == -1){
+    return krr("Init failed for socketpair");
+  }
+	sd1(-spair[0], &processR);
+	#ifndef WIN32
+ 	pthread_t t;
+  if(pthread_create(&t, NULL, pingmain, NULL))
+     R krr("poller_thread");
+  pingthread= &t;
+ 	#else
+  if(_beginthreadex(0,0,pingmain,NULL,0,0)==-1)
+   	R krr("poller_thread");
+	#endif
+	ROPEN=mode;
+	return ki(ROPEN);
 }
 
-/*
- * in practice, errors occur if R is closed, then re-opened
- * these do not seem to affect later use
- */
 // note that embedded R can be initialised once. No open/close/open supported 
 // http://r.789695.n4.nabble.com/Terminating-and-restarting-an-embedded-R-instance-possible-td4641823.html
-K rclose(K x)
-{
-	if (ROPEN == 1) {
-#ifndef WIN32
-		fpu_setup(FALSE);
-#endif
-		Rf_endEmbeddedR(0);	// exit R without error(non-fatal)
-	}
-	ROPEN=0;
-	return ki(0);
-}
-
+K rclose(K x){R NULL;}
 K rcmd(K x) { return rexec(0,x); }
 K rget(K x) { return rexec(1,x); }
 
@@ -412,7 +421,7 @@ static char* ParseError[5]={"null","ok","incomplete","error","eof"};
 
 K rexec(int type,K x)
 {
-	if (ROPEN == 0) ropen(ki(0));
+	if (ROPEN < 0) ropen(NULL);
 	SEXP e, p, r, xp;
 	char rerr[256];extern char	R_ParseErrorMsg[256];
 	int error;
@@ -440,7 +449,7 @@ K rexec(int type,K x)
 }
 
 K rset(K x,K y) {
-	if (ROPEN == 0) ropen(ki(0));
+	if (ROPEN < 0) ropen(NULL);
 	ParseStatus status;
 	SEXP txt, sym, val;
 	char rerr[256];extern char	R_ParseErrorMsg[256];

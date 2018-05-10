@@ -126,3 +126,7 @@ Rget`b
 Rcmd"inspect <- function(x, ...) .Internal(inspect(x,...))"
 Rget`inspect
 Rget"substitute(log(1))"
+
+flip[`a`b`row.names!(`1`2`1;`a`b`b;1 2 3)]~Rget"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"
+flip[`a`b`row.names!(`1`2`1;("a";"b";"b");1 2 3)]~Rget"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"
+flip[`a`b`row.names!(`1`2`1;`10`20`30;1 2 3)]~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"

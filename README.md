@@ -49,9 +49,11 @@ e4.q  is a simple example of plot 'moving window volatility' of returns. Convert
 ### Example 2. 
 
 pcd.q is based on [Corporate credit card transactions 2014-15](https://data.gov.uk/dataset/corporate-credit-card-transaction-2014-15).
+
 Please download csv file from the link above and place it in the same folder as `pcd.q` under name `pcd2014v1.csv`.
 
 ### Example 3.
 
 http://data.london.gov.uk/datastore/package/tubenetwork-performance-data
+
 Left for the reader :)

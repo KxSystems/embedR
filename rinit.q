@@ -31,3 +31,4 @@ Rinstall:{[pkg]
   }
 Roff:{Rcmd "dev.off()"}
 Rnew:{Rcmd "dev.new(noRStudioGD=TRUE)"}
+setenv[`R_HOME;first @[system;@[.z.o like "w*";"call";"env"]," R RHOME";enlist""]]

@@ -20,6 +20,7 @@ ZK kdoublea(J len, int rank, int *shape, double *val);
 ZK from_any_robject(SEXP sxp);
 
 __thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
+__thread int RLOAD=0;
 
 /*
  * convert R SEXP into K object.
@@ -386,6 +387,7 @@ K processR(I d){
  */
 K ropen(K x)
 {
+	if(!RLOAD) return krr("main thread only");
 	if (ROPEN >= 0) return ki(ROPEN);
 	int s,mode=0;	char *argv[] = {"R","--slave"};
 	if (x && (-KI ==x->t || -KJ ==x->t)) mode=(x->t==-KI?x->i:x->j)!=0;
@@ -421,6 +423,7 @@ static char* ParseError[5]={"null","ok","incomplete","error","eof"};
 
 K rexec(int type,K x)
 {
+	if(!RLOAD) return krr("main thread only");
 	if (ROPEN < 0) ropen(NULL);
 	SEXP e, p, r, xp;
 	char rerr[256];extern char	R_ParseErrorMsg[256];
@@ -449,6 +452,7 @@ K rexec(int type,K x)
 }
 
 K rset(K x,K y) {
+	if(!RLOAD) return krr("main thread only");
 	if (ROPEN < 0) ropen(NULL);
 	ParseStatus status;
 	SEXP txt, sym, val;
@@ -476,3 +480,5 @@ K rset(K x,K y) {
 	R_ProcessEvents();
 	return (K)0;
 }
+
+__attribute__((constructor)) V __attach(V) {RLOAD=1;}

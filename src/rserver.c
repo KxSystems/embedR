@@ -6,6 +6,7 @@
  * https://cran.r-project.org/doc/manuals/r-release/R-ints.pdf
  * https://cran.r-project.org/doc/manuals/r-release/R-exts.html
  */
+
 K ropen(K x);
 K rclose(K x);
 K rcmd(K x);
@@ -15,6 +16,7 @@ K rset(K x,K y);
 ZK rexec(int type,K x);
 ZK kintv(J len, int *val);
 ZK kinta(J len, int rank, int *shape, int *val);
+ZK klonga(J len, int rank, int *shape, J*val);
 ZK kdoublev(J len, double *val);
 ZK kdoublea(J len, int rank, int *shape, double *val);
 ZK from_any_robject(SEXP sxp);
@@ -32,70 +34,127 @@ ZK from_symbol_robject(SEXP);
 ZK from_pairlist_robject(SEXP);
 ZK from_closure_robject(SEXP);
 ZK from_language_robject(SEXP);
+ZK from_date_robject(SEXP);
+ZK from_datetime_robject(SEXP);
+ZK from_datetime_ct_robject(SEXP);
+ZK from_datetime_lt_robject(SEXP);
 ZK from_char_robject(SEXP);
 ZK from_logical_robject(SEXP);
 ZK from_integer_robject(SEXP);
 ZK from_double_robject(SEXP);
 ZK from_character_robject(SEXP);
 ZK from_vector_robject(SEXP);
-ZK from_raw_robject(SEXP sxp);
-ZK from_nyi_robject(S m,SEXP sxp);
+ZK from_raw_robject(SEXP);
+ZK from_nyi_robject(SEXP);
+ZK from_frame_robject(SEXP);
+ZK from_factor_robject(SEXP);
 
-ZK from_any_robject(SEXP sxp)
-{
-	K result = 0;
-	int type = TYPEOF(sxp);
-	switch (type) {
-	case NILSXP : return from_null_robject(sxp); break; 		/* nil = NULL */
-	case SYMSXP : return from_symbol_robject(sxp); break;    	/* symbols */
-	case LISTSXP : return from_pairlist_robject(sxp); break; 		/* lists of dotted pairs */
-	case CLOSXP : return from_closure_robject(sxp); break;		/* closures */
-	case ENVSXP : return from_nyi_robject("environment",sxp); break;	/* environments */
-	case PROMSXP : return from_nyi_robject("promise",sxp); break; 		/* promises: [un]evaluated closure arguments */
-	case LANGSXP : return from_language_robject(sxp); break; 	/* language constructs (special lists) */
-	case SPECIALSXP : return from_nyi_robject("special",sxp); break; 	/* special forms */
-	case BUILTINSXP : return from_nyi_robject("builtin",sxp); break; 	/* builtin non-special forms */
-	case CHARSXP : return from_char_robject(sxp); break; 		/* "scalar" string type (internal only)*/
-	case LGLSXP : return from_logical_robject(sxp); break; 		/* logical vectors */
-	case INTSXP : return from_integer_robject(sxp); break; 		/* integer vectors */
-	case REALSXP : return from_double_robject(sxp); break; 		/* real variables */
-	case CPLXSXP : return from_nyi_robject("complex", sxp); break; 		/* complex variables */
-	case STRSXP : return from_character_robject(sxp); break; 	/* string vectors */
-	case DOTSXP : return from_nyi_robject("dot",sxp); break; 		/* dot-dot-dot object */
-	case ANYSXP : return error_broken_robject(sxp); break; 		/* make "any" args work */
-	case VECSXP : return from_vector_robject(sxp); break; 		/* generic vectors */
-	case EXPRSXP : return from_nyi_robject("exprlist",sxp); break; 	/* sxps vectors */
-	case BCODESXP : return from_nyi_robject("bcode",sxp); break; 	/* byte code */
-	case EXTPTRSXP : return from_nyi_robject("external",sxp); break; 	/* external pointer */
-	case WEAKREFSXP : return error_broken_robject(sxp); break; 	/* weak reference */
-	case RAWSXP : return from_raw_robject(sxp); break; 		/* raw bytes */
-	case S4SXP : return from_nyi_robject("s4",sxp); break; 		/* S4 non-vector */
+Rboolean isClass(const char *class_, SEXP s) {
+  SEXP klass;
+  int i;
+  if(OBJECT(s)) {
+    klass= getAttrib(s, R_ClassSymbol);
+    for(i= 0; i < length(klass); i++)
+      if(!strcmp(CHAR(STRING_ELT(klass, i)), class_))
+        return TRUE;
+  }
+  return FALSE;
+}
 
-	case NEWSXP : return error_broken_robject(sxp); break;		/* fresh node created in new page */
-  case FREESXP : return error_broken_robject(sxp); break;		/* node released by GC */
-	case FUNSXP : return from_nyi_robject("fun",sxp); break; 		/* Closure or Builtin */
+ZK from_any_robject(SEXP sxp){
+  if(isClass("data.frame", sxp)) {
+    return from_frame_robject(sxp);
+  }
+  if(isClass("factor", sxp)) {
+    return from_factor_robject(sxp);
+  }
+  if(isClass("Date", sxp)){
+    return from_date_robject(sxp);
+  }
+  if(isClass("POSIXt", sxp)){
+    return from_datetime_robject(sxp);
+  }
+  K result = 0;
+  int type = TYPEOF(sxp);
+  switch (type) {
+	case NILSXP : 
+	  return from_null_robject(sxp);
+	  break; 		/* nil = NULL */
+	case SYMSXP :
+	  return from_symbol_robject(sxp);
+	  break;    	/* symbols */
+	case LISTSXP :
+	  return from_pairlist_robject(sxp);
+	  break; 		/* lists of dotted pairs */
+	case CLOSXP : 
+	  return from_closure_robject(sxp);
+	  break;		/* closures */
+	case LANGSXP :
+	  return from_language_robject(sxp);
+	  break; 	/* language constructs (special lists) */
+	case CHARSXP : 
+	  return from_char_robject(sxp);
+	  break; 		/* "scalar" string type (internal only)*/
+	case LGLSXP :
+	  return from_logical_robject(sxp);
+	  break; 		/* logical vectors */
+	case RAWSXP :
+	  return from_raw_robject(sxp);
+	  break; 		/* raw bytes */
+	case INTSXP :
+	  return from_integer_robject(sxp);
+	  break; 		/* integer vectors */
+	case REALSXP :
+	  return from_double_robject(sxp);
+	  break; 		/* real variables */
+	case STRSXP :
+	  return from_character_robject(sxp);
+	  break; 	/* string vectors */
+	case VECSXP :
+	  return from_vector_robject(sxp);
+	  break; 		/* generic vectors */
+	case FREESXP :
+	  return error_broken_robject(sxp);
+	  break;		/* node released by GC */
+	case ANYSXP :
+	  return error_broken_robject(sxp);
+	  break; 		/* make "any" args work */
+	case EXPRSXP :
+	case BCODESXP :
+	case EXTPTRSXP :
+	case WEAKREFSXP :
+	case S4SXP :
+	case NEWSXP :
+	case FUNSXP :
+	case PROMSXP :
+	case SPECIALSXP :
+	case BUILTINSXP :
+	case ENVSXP :
+	case CPLXSXP :
+	case DOTSXP :
+	  return from_nyi_robject(sxp);
+      break;
 	}
 	return result;
 }
 
-ZK dictpairlist(SEXP sxp)
-{
-	K k = ktn(0,length(sxp));
-	K v = ktn(0,length(sxp));
-	SEXP s = sxp;J i;
-	for(i=0;i<length(sxp);i++) {
-		kK(k)[i] = from_any_robject(TAG(s));
-		kK(v)[i] = from_any_robject(CAR(s));
-		s=CDR(s);
-	}
-	return xD(k,v);
+ZK dictpairlist(SEXP sxp){
+  K k= knk(0);
+  K v= knk(0);
+  SEXP s= sxp;
+  while(s!=R_NilValue){
+    jk(&k,from_any_robject(TAG(s)));
+    jk(&v,from_any_robject(CAR(s)));
+    s= CDR(s);
+  }
+  return xD(k, v);
 }
 
 /* add attribute */
 ZK addattR (K x,SEXP att)
 {
 	// attrs are pairlists: LISTSXP
-	K u = dictpairlist(att);
+	K u = from_pairlist_robject(att);
 	return knk(2,u,x);
 }
 
@@ -112,8 +171,37 @@ ZK error_broken_robject(SEXP sxp)
 	return krr("Broken R object.");
 }
 
-ZK from_nyi_robject(S marker, SEXP sxp){
+ZK from_nyi_robject(SEXP sxp){
 	return attR(kp((S)Rf_type2char(TYPEOF(sxp))),sxp);
+}
+
+ZK from_frame_robject(SEXP sxp) {
+  J length= XLENGTH(sxp);
+  if(length == 0)
+    return from_null_robject(sxp);
+
+  SEXP colNames= getAttrib(sxp, R_NamesSymbol);
+  
+  K k= ktn(KS, length), v= ktn(0, length);
+  for(J i= 0; i < length; i++) {
+    kK(v)[i]= from_any_robject(VECTOR_ELT(sxp, i));
+    const char *colName= CHAR(STRING_ELT(colNames, i));
+    kS(k)[i]= ss((S) colName);
+  }
+
+  K tbl= xT(xD(k, v));
+  return tbl;
+}
+
+ZK from_factor_robject(SEXP sxp) {
+  J length= XLENGTH(sxp);
+  SEXP levels= asCharacterFactor(sxp);
+  K x= ktn(KS, length);
+  for(J i= 0; i < length; i++) {
+    const char *sym= CHAR(STRING_ELT(levels, i));
+    kS(x)[i]= ss((S) sym);
+  }
+  return x;
 }
 
 ZK from_raw_robject(SEXP sxp)
@@ -121,6 +209,62 @@ ZK from_raw_robject(SEXP sxp)
 	K x = ktn(KG,XLENGTH(sxp));
 	DO(xn,kG(x)[i]=RAW(sxp)[i])
 	return x;
+}
+
+ZK from_date_robject(SEXP sxp) {
+  K x;
+  J length= XLENGTH(sxp);
+  x= ktn(KD,length);
+  int type= TYPEOF(sxp);
+  switch(type) {
+    case INTSXP:
+      DO(length,kI(x)[i]=INTEGER(sxp)[i]-kdbDateOffset);
+      break;
+    default:
+      DO(length,kI(x)[i]=ISNA(REAL(sxp)[i])?NA_INTEGER:(I)REAL(sxp)[i]-kdbDateOffset);
+  }
+  return x;
+}
+
+ZK from_datetime_ct_robject(SEXP sxp){
+  K x;
+  J length = XLENGTH(sxp);
+  x = ktn(KZ,length);
+  DO(length,kF(x)[i]=(F)(((REAL(sxp)[i]-kdbSecOffset)/sec2day)));
+  return x;
+}
+
+ZK from_datetime_lt_robject(SEXP sxp){
+  K x;
+  J i, key_length= XLENGTH(sxp);
+  x= ktn(0, key_length);
+  for(i= 0; i < key_length; ++i)
+    kK(x)[i]= from_any_robject(VECTOR_ELT(sxp, i));
+  J element_length=kK(x)[0]->n;
+  K res=ktn(KZ, element_length);
+  for(i=0; i < element_length; i++){
+    //Relying on the order of tm key
+    struct tm dttm;
+    dttm.tm_sec  =kF(kK(x)[0])[i];
+    dttm.tm_min  =kI(kK(x)[1])[i];
+    dttm.tm_hour =kI(kK(x)[2])[i];
+    dttm.tm_mday =kI(kK(x)[3])[i];
+    dttm.tm_mon  =kI(kK(x)[4])[i];
+    dttm.tm_year =kI(kK(x)[5])[i];
+    dttm.tm_wday =kI(kK(x)[6])[i];
+    dttm.tm_yday =kI(kK(x)[7])[i];
+    dttm.tm_isdst=kI(kK(x)[8])[i];
+    kF(res)[i]=(((F)mktime(&dttm)-kdbSecOffset)/sec2day);
+  }
+  return res;
+}
+
+//Wraper function of POSIXt
+ZK from_datetime_robject(SEXP sxp){
+  if(isClass("POSIXct", sxp))
+    return from_datetime_ct_robject(sxp);
+  else
+    return from_datetime_lt_robject(sxp);
 }
 
 // NULL in R(R_NilValue): often used as generic zero length vector
@@ -177,72 +321,72 @@ ZK from_logical_robject(SEXP sxp)
 {
 	K x;
 	J len = XLENGTH(sxp);
-	int *s = malloc(len*sizeof(int));
-	DO(len,s[i]=LOGICAL_POINTER(sxp)[i]);
-	SEXP dim = GET_DIM(sxp);
+	SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
-		x = kintv(len,s);
-    free(s);
+		x = kintv(len,LOGICAL(sxp));
 		return attR(x,sxp);
 	}
-	x = kinta(len,length(dim),INTEGER(dim),s);
-	free(s);
-	SEXP dimnames = GET_DIMNAMES(sxp);
+	x = kinta(len,length(dim),INTEGER(dim),LOGICAL(sxp));
+	SEXP dimnames= getAttrib(sxp, R_DimNamesSymbol);
 	if (!isNull(dimnames))
 		return attR(x,sxp);
 	SEXP e;
 	PROTECT(e = duplicate(sxp));
-	SET_DIM(e, R_NilValue);
+	setAttrib(e, R_DimSymbol, R_NilValue);
 	x = attR(x,e);
 	UNPROTECT(1);
 	return x;
 }
 
-ZK from_integer_robject(SEXP sxp)
-{
+ZK from_integer_robject(SEXP sxp){
 	K x;
 	J len = XLENGTH(sxp);
-	int *s = malloc(len*sizeof(int));
-	DO(len,s[i]=INTEGER_POINTER(sxp)[i]);
-	SEXP dim = GET_DIM(sxp);
+	SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
-		x = kintv(len,s);
-    free(s);
+		x = kintv(len,INTEGER(sxp));
 		return attR(x,sxp);
 	}
-	x = kinta(len,length(dim),INTEGER(dim),s);
-  free(s);
-	SEXP dimnames = GET_DIMNAMES(sxp);
+	x = kinta(len,length(dim),INTEGER(dim),INTEGER(sxp));
+	SEXP dimnames = getAttrib(sxp, R_DimNamesSymbol);
 	if (!isNull(dimnames))
 		return attR(x,sxp);
 	SEXP e;
 	PROTECT(e = duplicate(sxp));
-	SET_DIM(e, R_NilValue);
+	setAttrib(e, R_DimSymbol, R_NilValue);
 	x = attR(x,e);
 	UNPROTECT(1);
 	return x;
 }
 
-ZK from_double_robject(SEXP sxp)
-{
+ZK from_double_robject(SEXP sxp){
 	K x;
+	I nano, bit64=isClass("integer64",sxp);
 	J len = XLENGTH(sxp);
-	double *s = malloc(len*sizeof(double));
-	DO(len,s[i]=REAL(sxp)[i]);
-	SEXP dim = GET_DIM(sxp);
+	SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
-		x = kdoublev(len,s);
-		free(s);
-		return attR(x,sxp);
+	  nano = isClass("nanotime",sxp);
+      if(nano || bit64) {
+        x=ktn(nano?KP:KJ,len);
+        DO(len,kJ(x)[i]=INT64(sxp)[i])
+        if(nano)
+          DO(len,if(kJ(x)[i]!=nj)kJ(x)[i]-=epoch_offset)
+        return x;
+      }
+      x= kdoublev(len, REAL(sxp));
+      return attR(x, sxp);  
 	}
-	x = kdoublea(len,length(dim),INTEGER(dim),s);
-	free(s);
+    if(bit64){
+      x= klonga(len, length(dim), INTEGER(dim), (J*)REAL(sxp));
+    }else{
+      x= kdoublea(len, length(dim), INTEGER(dim), REAL(sxp));
+    }
 	SEXP dimnames = GET_DIMNAMES(sxp);
 	if (!isNull(dimnames))
 		return attR(x,sxp);
 	SEXP e;
 	PROTECT(e = duplicate(sxp));
-	SET_DIM(e, R_NilValue);
+	setAttrib(e, R_DimSymbol, R_NilValue);
+	if(bit64) classgets(e,R_NilValue);
 	x = attR(x,e);
 	UNPROTECT(1);
 	return x;
@@ -270,7 +414,16 @@ ZK from_vector_robject(SEXP sxp)
 	for (i = 0; i < length; i++) {
 		xK[i] = from_any_robject(VECTOR_ELT(sxp, i));
 	}
-  return attR(x,sxp);
+    SEXP colNames= getAttrib(sxp, R_NamesSymbol);
+ 	if(!isNull(colNames)&&length==XLENGTH(colNames)){
+    	K k= ktn(KS, length);
+    	for(i= 0; i < length; i++) {
+      		const char *colName= CHAR(STRING_ELT(colNames, i));
+      		kS(k)[i]= ss((S) colName);
+   		}
+    	return xD(k,x);
+ 	}
+  	return attR(x, sxp);
 }
 
 /*
@@ -312,21 +465,59 @@ ZK kinta(J len, int rank, int *shape, int *val)
 	K x,y;
 	J i,j,r,c,k;
 	switch (rank) {
-		case 1 : x = kintv(len,val); break;
+		case 1 :
+		  x = kintv(len,val);
+		  break;
 		case 2 :
-			r = shape[0]; c = shape[1]; x = knk(0);
-			for (i=0;i<r;i++) {
-				y = ktn(KI,c);
-				for (j=0;j<c;j++)
-					kI(y)[j] = val[i+r*j];
-				x = jk(&x,y);
-			}; break;
+		  r = shape[0];
+		  c = shape[1];
+		  x = knk(0);
+		  for (i=0;i<r;i++) {
+			y = ktn(KI,c);
+			for (j=0;j<c;j++)
+			  kI(y)[j] = val[i+r*j];
+			x = jk(&x,y);
+		  };
+		  break;
 		default :
-			k = rank-1; r = shape[k]; c = len/r; x = knk(0);
-			for (i=0;i<r;i++)
-				x = jk(&x,kinta(c,k,shape,val+c*i));
+		  k = rank-1;
+		  r = shape[k];
+		  c = len/r;
+		  x = knk(0);
+		  for (i=0;i<r;i++)
+			x = jk(&x,kinta(c,k,shape,val+c*i));
 	}
 	return x;
+}
+
+ZK klonga(J len, int rank, int *shape, J*val) {
+  K x, y;
+  J i, j, r, c, k;
+  switch(rank) {
+  case 1:
+    x= ktn(KJ,len);
+    DO(len, kJ(x)[i]=val[i])
+    break;
+  case 2:
+    r= shape[0];
+    c= shape[1];
+    x= ktn(0,r);
+    for(i= 0; i < r; i++) {
+      y= ktn(KJ, c);
+      for(j= 0; j < c; j++)
+        kJ(y)[j]= val[i + r * j];
+      kK(x)[i]=y;
+    };
+    break;
+  default:
+    k= rank - 1;
+    r= shape[k];
+    c= len / r;
+    x= ktn(0,r);
+    for(i= 0; i < r; i++)
+      kK(x)[i] = klonga(c, k, shape, val + c * i);
+  }
+  return x;
 }
 
 ZK kdoublev(J len, double *val)

@@ -114,14 +114,67 @@ void make_data_frame(SEXP data)
   UNPROTECT(3);
 }
 
-/* for datetime, timestamp */
-static void setdatetimeclass(SEXP sxp)
+/* for datetime */
+static SEXP setdatetimeclass(SEXP sxp)
 {
 	SEXP datetimeclass = PROTECT(allocVector(STRSXP,2));
 	SET_STRING_ELT(datetimeclass, 0, mkChar("POSIXt"));
 	SET_STRING_ELT(datetimeclass, 1, mkChar("POSIXct"));
-	setAttrib(sxp, R_ClassSymbol, datetimeclass);
-	UNPROTECT(2);
+	classgets(sxp, datetimeclass);
+	UNPROTECT(1);
+	return sxp;
+}
+
+/* for timestamp */
+static SEXP settimestampclass(SEXP sxp) {
+  SEXP classValue;
+  SEXP tag = PROTECT(mkString(".S3Class"));
+  SEXP val = PROTECT(mkString("integer64"));
+  setAttrib(sxp, tag, val);
+  UNPROTECT(2);
+
+
+  classValue= PROTECT(mkString("nanotime"));
+  tag = PROTECT(mkString("package"));
+  val = PROTECT(mkString("nanotime"));
+  setAttrib(classValue, tag, val);
+  classgets(sxp, classValue);
+  UNPROTECT(3);
+  return asS4(sxp,TRUE,0);
+}
+
+static SEXP R_UnitsSymbol = NULL;
+static SEXP R_TzSymbol = NULL;
+
+/* for timespan, minute, second */
+static SEXP setdifftimeclass(SEXP sxp, char* units) {
+  SEXP difftimeclass= PROTECT(allocVector(STRSXP, 1));
+  SET_STRING_ELT(difftimeclass, 0, mkChar("difftime"));
+  classgets(sxp, difftimeclass);
+  if (R_UnitsSymbol == NULL) R_UnitsSymbol = install("units");
+  SEXP difftimeunits= PROTECT(allocVector(STRSXP, 1));
+  SET_STRING_ELT(difftimeunits, 0, mkChar(units));
+  setAttrib(sxp, R_UnitsSymbol, difftimeunits);
+  UNPROTECT(2);
+  return sxp;
+}
+
+/* for setting timezone */
+static SEXP settimezone(SEXP sxp, char* tzone) {
+  SEXP timezone= PROTECT(allocVector(STRSXP, 1));
+  SET_STRING_ELT(timezone, 0, mkChar(tzone));
+  if (R_TzSymbol == NULL) R_TzSymbol = install("tzone");
+  setAttrib(sxp, R_TzSymbol, timezone);
+  UNPROTECT(1);
+  return sxp;
+}
+/* for date,month */
+static SEXP setdateclass(SEXP sxp) {
+  SEXP difftimeclass= PROTECT(allocVector(STRSXP, 1));
+  SET_STRING_ELT(difftimeclass, 0, mkChar("Date"));
+  classgets(sxp, difftimeclass);
+  UNPROTECT(1);
+  return sxp;
 }
 
 /*
@@ -253,14 +306,21 @@ static SEXP error_broken_kobject(K broken)
  */
 static SEXP from_list_of_kobjects(K x)
 {
-	SEXP result;
-	int i, length = x->n;
-	PROTECT(result = NEW_LIST(length));
-	for (i = 0; i < length; i++) {
-		SET_VECTOR_ELT(result, i, from_any_kobject(xK[i]));
-	}
-	UNPROTECT(1);
-	return result;
+  SEXP result;
+  K y;
+  J i, length= x->n, utype;
+  PROTECT(result= allocVector(VECSXP,length));
+  utype= length > 0 ? kK(x)[0]->t : 0;
+  for(i= 0; i < length; i++) {
+    y= kK(x)[i];
+    utype= utype == y->t ? utype : 0;
+    SET_VECTOR_ELT(result, i, from_any_kobject(y));
+  }
+  if(utype == KC) {
+    result= coerceVector(result, STRSXP);
+  }
+  UNPROTECT(1);
+  return result;
 }
 
 /*
@@ -277,39 +337,25 @@ static SEXP from_list_of_kobjects(K x)
 
 #define scalar(x) (x->t < 0)
 
-static SEXP from_bool_kobject(K x)
-{
-	SEXP result;
-	int length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_LOGICAL(1));
-		LOGICAL_POINTER(result)[0] = x->g;
-	}
-	else {
-		int i;
-		PROTECT(result = NEW_LOGICAL(length));
-		for(i = 0; i < length; i++)
-			LOGICAL_POINTER(result)[i] = kG(x)[i];
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_bool_kobject(K x) {
+  SEXP result;
+  if(scalar(x)) return ScalarLogical(x->g);
+  PROTECT(result= allocVector(LGLSXP,x->n));
+  for(J i= 0; i < x->n; i++)
+    LOGICAL(result)[i]= kG(x)[i];
+  UNPROTECT(1);
+  return result;
 }
 
-static SEXP from_byte_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_INTEGER(1));
-		INTEGER_POINTER(result)[0] = (int) x->g;
-	}
-	else {
-		PROTECT(result = NEW_INTEGER(length));
-		for(i = 0; i < length; i++)
-			INTEGER_POINTER(result)[i] = kG(x)[i];
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_byte_kobject(K x) {
+  SEXP result;G*r;
+  if(scalar(x)) return ScalarRaw(x->g);
+  PROTECT(result= allocVector(RAWSXP,x->n));
+  r=RAW(result);
+  for(J i= 0; i < x->n; i++)
+    r[i]= kG(x)[i];
+  UNPROTECT(1);
+  return result;
 }
 
 static SEXP from_guid_kobject(K x)
@@ -319,134 +365,94 @@ static SEXP from_guid_kobject(K x)
 	return r;
 }
 
-static SEXP from_short_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_INTEGER(1));
-		INTEGER_POINTER(result)[0] = (int) x->h;
-	}
-	else {
-		PROTECT(result = NEW_INTEGER(xn));
-		for(i = 0; i < length; i++)
-			INTEGER_POINTER(result)[i] = (int) xH[i];
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_short_kobject(K x) {
+  SEXP result;
+  if(scalar(x)) return ScalarInteger(x->h==nh?NA_INTEGER:(int)x->h);
+  PROTECT(result= allocVector(INTSXP,x->n));
+  for(J i= 0; i < x->n; i++)
+    INTEGER(result)[i]= kH(x)[i]==nh?NA_INTEGER:kH(x)[i];
+  UNPROTECT(1);
+  return result;
 }
 
-static SEXP from_int_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_INTEGER(1));
-		INTEGER_POINTER(result)[0] = x->i;
-	}
-	else {
-		PROTECT(result = NEW_INTEGER(length));
-		for(i = 0; i < length; i++)
-			INTEGER_POINTER(result)[i] = (int) xI[i];
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_int_kobject(K x) {
+  SEXP result;
+  if(scalar(x)) return ScalarInteger(x->i);
+  PROTECT(result= allocVector(INTSXP,x->n));
+  for(J i= 0; i < x->n; i++)
+    INTEGER(result)[i]= kI(x)[i];
+  UNPROTECT(1);
+  return result;
 }
 
-static SEXP from_long_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = (double) x->j;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = (double) xJ[i];
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_long_kobject(K x) {
+  SEXP result;
+  J i, n=scalar(x)?1:x->n;
+  PROTECT(result= allocVector(REALSXP,n));
+  if(scalar(x)) {
+    INT64(result)[0]= x->j;
+  } else {
+    for(i= 0; i < n; i++)
+      INT64(result)[i]= kJ(x)[i];
+  }
+  classgets(result, mkString("integer64"));
+  UNPROTECT(1);
+  return result;
 }
 
-static SEXP from_float_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = (double) x->e;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = (double) xE[i];
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_float_kobject(K x) {
+  SEXP result;
+  if(scalar(x)) return ScalarReal(ISNAN(x->e)?R_NaN:x->e);
+  PROTECT(result= allocVector(REALSXP,x->n));
+  for(J i= 0; i < x->n; i++)
+    REAL(result)[i]= (double) ISNAN(kE(x)[i])?R_NaN:kE(x)[i];
+  UNPROTECT(1);
+  return result;
 }
 
-static SEXP from_double_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = x->f;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = xF[i];
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_double_kobject(K x) {
+  SEXP result;
+  if(scalar(x)) return ScalarReal(ISNAN(x->f)?R_NaN:x->f);
+  PROTECT(result= allocVector(REALSXP,x->n));
+  for(J i= 0; i < x->n; i++)
+    REAL(result)[i]= ISNAN(kF(x)[i])?R_NaN:kF(x)[i];
+  UNPROTECT(1);
+  return result;
 }
 
-static SEXP from_string_kobject(K x)
-{
-	SEXP result;
-	int length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_CHARACTER(1));
-		SET_STRING_ELT(result, 0, mkCharLen((S)&x->g,1));
-	}
-	else {
-		PROTECT(result = allocVector(STRSXP, 1));
-		SET_STRING_ELT(result, 0, mkCharLen((S)xG,length));
-	};
-	UNPROTECT(1);
-	return result;
+static SEXP from_string_kobject(K x) {
+  SEXP result;
+  J n=scalar(x)?1:x->n;
+  PROTECT(result= allocVector(STRSXP,1));
+  if(scalar(x)) {
+    SET_STRING_ELT(result, 0, mkCharLen((S) &x->g, 1));
+  } else {
+    SET_STRING_ELT(result, 0, mkCharLen((S) kC(x), n));
+  };
+  UNPROTECT(1);
+  return result;
 }
 
 static SEXP from_string_column_kobject(K x)
 {
   SEXP result;
-  int i, length = x->n;
-  PROTECT(result = NEW_CHARACTER(length));
-  for(i = 0; i < length; i++) {
+  J i, n=scalar(x)?1:x->n;
+  PROTECT(result= allocVector(STRSXP,n));
+  for(i = 0; i < n; i++) {
     SET_STRING_ELT(result, i, mkCharLen((S)&kC(x)[i],1));
   }
   UNPROTECT(1);
   return result;
 }
 
-static SEXP from_symbol_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_CHARACTER(1));
-		SET_STRING_ELT(result, 0, mkChar(xs));
-	}
-	else {
-		PROTECT(result = NEW_CHARACTER(length));
-		for(i = 0; i < length; i++)
-			SET_STRING_ELT(result, i, mkChar((S)xS[i]));
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_symbol_kobject(K x) {
+  SEXP result;
+  if(scalar(x)) return mkString(x->s);
+  PROTECT(result= allocVector(STRSXP,x->n));
+  for(J i= 0; i < x->n; i++)
+    SET_STRING_ELT(result, i, mkChar(kS(x)[i]));
+  UNPROTECT(1);
+  return result;
 }
 
 static SEXP from_month_kobject(K object)
@@ -454,102 +460,69 @@ static SEXP from_month_kobject(K object)
 	return from_int_kobject(object);
 }
 
-static SEXP from_date_kobject(K x)
-{
-  SEXP result;
-  SEXP dateclass;
-  int i, length = x->n;
-  if (scalar(x)) {
-    PROTECT(result = NEW_INTEGER(1));
-    INTEGER_POINTER(result)[0] = x->i + 10957;
-  }
-	else {
-		PROTECT(result = NEW_INTEGER(length));
-		for(i = 0; i < length; i++)
-		INTEGER_POINTER(result)[i] = (int) xI[i] + 10957;
-  }
-  dateclass = PROTECT(allocVector(STRSXP,1));
-	SET_STRING_ELT(dateclass, 0, mkChar("Date"));
-	setAttrib(result, R_ClassSymbol, dateclass);
-	UNPROTECT(2);
-	return result;
+static SEXP from_date_kobject(K x) {
+  SEXP result=PROTECT(from_int_kobject(x));
+  for(J i= 0; i < XLENGTH(result); i++)
+    if(INTEGER(result)[i]!=NA_INTEGER) INTEGER(result)[i]+=kdbDateOffset;
+  setdateclass(result);
+  UNPROTECT(1);
+  return result;
 }
 
-static SEXP from_datetime_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = (x->f + 10957) * 86400;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = (kF(x)[i] + 10957) * 86400;
-	}
+static SEXP from_datetime_kobject(K x) {
+  SEXP result=PROTECT(from_double_kobject(x));
+  for(J i= 0; i < XLENGTH(result); i++)
+    REAL(result)[i]= REAL(result)[i]* sec2day + kdbDateOffset * sec2day;
   setdatetimeclass(result);
-	return result;
+  settimezone(result,"GMT");
+  UNPROTECT(1);
+  return result;
 }
 
-static SEXP from_minute_kobject(K object)
-{
-	return from_int_kobject(object);
-}
+static SEXP from_minute_kobject(K object) { 
+  SEXP result=PROTECT(from_int_kobject(object));
+  setdifftimeclass(result,"mins");
+  UNPROTECT(1); 
+  return result; 
+  }
 
-static SEXP from_second_kobject(K object)
-{
-	return from_int_kobject(object);
-}
+static SEXP from_second_kobject(K object) { 
+  SEXP result=PROTECT(from_int_kobject(object));
+  setdifftimeclass(result,"secs");
+  UNPROTECT(1); 
+  return result;
+  }
 
 static SEXP from_time_kobject(K object)
 {
 	return from_int_kobject(object);
 }
 
-static SEXP from_timespan_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = x->j / 1e9;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = xJ[i] / 1e9;
-	}
-	UNPROTECT(1);
-	return result;
+static SEXP from_timespan_kobject(K x) {
+  return from_long_kobject(x);
 }
 
 static SEXP from_timestamp_kobject(K x)
 {
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = 946684800 + x->j / 1e9;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-  		NUMERIC_POINTER(result)[i] = 946684800 + kJ(x)[i] / 1e9;
-	}
-	setdatetimeclass(result);
-	return result;
+  SEXP result=from_long_kobject(x);
+  J i,n=XLENGTH(result);
+  PROTECT(result);
+  for(i= 0; i < n; i++)
+      if(INT64(result)[i]!=nj)INT64(result)[i]+=epoch_offset;
+  settimestampclass(result);
+  UNPROTECT(1);
+  return result;
 }
 
 static SEXP from_dictionary_kobject(K x)
 {
 	SEXP names, result;
-	K table;
+	K table, k= kK(x)[0], v= kK(x)[1];
 
 	/* if keyed, try to create a simple table */
 	/* ktd will free its argument if successful */
 	/* if fails, x is still valid */
-	if (XT==xx->t && XT==xy->t) {
+	if (XT==k->t && XT==v->t) {
 		r1(x);
 		if ((table = ktd(x))) {
 			result = from_table_kobject(table);
@@ -559,9 +532,9 @@ static SEXP from_dictionary_kobject(K x)
 		r0(x);
 	}
 
-	PROTECT(names = from_any_kobject(xx));
-	PROTECT(result = from_any_kobject(xy));
-	SET_NAMES(result, names);
+	PROTECT(names = from_any_kobject(k));
+	PROTECT(result = from_any_kobject(v));
+	setAttrib(result, R_NamesSymbol, names);
 	UNPROTECT(2);
 	return result;
 }

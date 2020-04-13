@@ -56,7 +56,7 @@ EQUAL[3; .rk.get "a"; ("84cf32c6-c711-79b4-2f31-6e85923decff";"22371003-8997-eed
 
 .rk.exec "b= 2 == array(1:24,c(2,3,4))"
 EQUAL[4; .rk.get "dim(b)"; 2 3 4i];
-EQUAL[5; .rk.get "b"; ((0 0 0i;1 0 0i);(0 0 0i;0 0 0i);(0 0 0i;0 0 0i);(0 0 0i;0 0 0i))];
+EQUAL[5; .rk.get "b"; ((000b;100b);(000b;000b);(000b;000b);(000b;000b))];
 
 EQUAL[6; .rk.get "1.1*array(1:24,c(2,3,4))"; ((1.1 3.3 5.5;2.2 4.4 6.6);(7.7 9.9 12.1;8.8 11.0 13.2);(14.3 16.5 18.7;15.4 17.6 19.8);(20.9 23.1 25.3;22.0 24.2 26.4))];
 
@@ -89,7 +89,7 @@ PROGRESS["Numeric Array Finished!!"];
 EQUAL[17; .rk.get "x"; `one`two`three`four];
 EQUAL[18; .rk.get "mode(x)"; "numeric"];
 EQUAL[19; .rk.get "typeof(x)"; "integer"];
-EQUAL[20; .rk.get "c(TRUE,FALSE,NA,TRUE,TRUE,FALSE)"; 1 0 0N 1 1 0i];
+EQUAL[20; .rk.get "c(TRUE,FALSE,NA,TRUE,TRUE,FALSE)"; 100110b];
 .rk.exec "foo <- function(x,y) {x + 2 * y}"
 .rk.get "foo"
 EQUAL[21; .rk.get "typeof(foo)"; "closure"];
@@ -120,7 +120,7 @@ EQUAL[28; .rk.get each ("cos";".C";"floor";"Im";"cumsum";"nargs";"proc.time";"di
 .rk.get "getGeneric('+')"
 
 EQUAL[29; .rk.get"as.raw(10)"; (), 0x0a];
-EQUAL[30; .rk.get"as.logical(c(1,FALSE,NA))"; 1 0 0Ni];
+EQUAL[30; .rk.get"as.logical(c(1,FALSE,NA))"; 100b];
 
 PROGRESS["Onject Test Finished!!"];
 
@@ -160,7 +160,7 @@ PROGRESS["Time Test Finished!!"];
 
 //lang
 EQUAL[44; .rk.get "as.pairlist(1:10)"; (enlist 1i;();enlist 2i;();enlist 3i;();enlist 4i;();enlist 5i;();enlist 6i;();enlist 7i;();enlist 8i;();enlist 9i;();enlist 10i;())];
-EQUAL[45; .rk.get "as.pairlist(TRUE)"; (enlist 1i; ())];
+EQUAL[45; .rk.get "as.pairlist(TRUE)"; (enlist 1b; ())];
 EQUAL[46; .rk.get "as.pairlist(as.raw(1))"; (enlist 0x01; ())];
 EQUAL[47; .rk.get "pairlist('rnorm', 10L, 0.0, 2.0 )"; ("rnorm";();enlist 10i;();enlist 0f;();enlist 2f;())];
 .rk.get "list(x ~ y + z)"

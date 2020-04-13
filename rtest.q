@@ -134,46 +134,57 @@ EQUAL[34; .rk.get"data.frame()"; ()];
 
 PROGRESS["Table Test Finished!!"];
 
+//Dictionary//------------------------------/
+
+.rk.set["dictI"; `a`b`c!1 2 3i];
+EQUAL[35; .rk.get"dictI"; `a`b`c!1 2 3i];
+.rk.set["dictJ"; `a`b`c!1 2 3];
+EQUAL[36; .rk.get"dictJ"; `a`b`c!1 2 3];
+.rk.set["dictB"; `a`b`c!101b];
+EQUAL[37; .rk.get"dictB"; `a`b`c!101b];
+.rk.set["dictP"; `a`b`c!(2020.04.13D06:08:03.712336000; 2020.04.13D06:08:03.712336001; 2020.04.13D06:08:03.712336002)];
+EQUAL[38; .rk.get"dictP"; `a`b`c!(2020.04.13D06:08:03.712336000; 2020.04.13D06:08:03.712336001; 2020.04.13D06:08:03.712336002)];
+
 //Time//------------------------------------/
 
 // dates
-EQUAL[35; .rk.get"as.Date('2005-12-31')"; (), 2005.12.31];
-EQUAL[36; .rk.get"as.Date(NA)"; (), 0Nd];
-EQUAL[37; .rk.get"rep(as.Date('2005-12-31'),2)"; 2005.12.31 2005.12.31];
+EQUAL[39; .rk.get"as.Date('2005-12-31')"; (), 2005.12.31];
+EQUAL[40; .rk.get"as.Date(NA)"; (), 0Nd];
+EQUAL[41; .rk.get"rep(as.Date('2005-12-31'),2)"; 2005.12.31 2005.12.31];
 
 // datetime
 .rk.exec["Sys.setenv(TZ='UTC')"];
-EQUAL[38; .rk.get"as.POSIXct(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"; (),2018.02.18T04:00:01.000z];
-EQUAL[39; .rk.get"as.POSIXlt(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"; (),2018.02.18T04:00:01.000z];
-EQUAL[40; .rk.get"c(as.POSIXct(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXct(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"; (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)];
-EQUAL[41; .rk.get"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXlt(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"; (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)];
+EQUAL[42; .rk.get"as.POSIXct(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"; (),2018.02.18T04:00:01.000z];
+EQUAL[43; .rk.get"as.POSIXlt(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"; (),2018.02.18T04:00:01.000z];
+EQUAL[44; .rk.get"c(as.POSIXct(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXct(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"; (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)];
+EQUAL[45; .rk.get"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXlt(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"; (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)];
 .rk.set["dttm"; 2018.02.18T04:00:01.000z];
-EQUAL[42; .rk.get"dttm"; (), 2018.02.18T04:00:01.000z];
+EQUAL[46; .rk.get"dttm"; (), 2018.02.18T04:00:01.000z];
 
 //timestamp
 .rk.set["tmstp"; 2020.03.16D17:30:45.123456789];
-EQUAL[43; .rk.get"tmstp"; (), 2020.03.16D17:30:45.123456789];
+EQUAL[47; .rk.get"tmstp"; (), 2020.03.16D17:30:45.123456789];
 
 PROGRESS["Time Test Finished!!"];
 
 //List//---------------------------------------/
 
 //lang
-EQUAL[44; .rk.get "as.pairlist(1:10)"; (enlist 1i;();enlist 2i;();enlist 3i;();enlist 4i;();enlist 5i;();enlist 6i;();enlist 7i;();enlist 8i;();enlist 9i;();enlist 10i;())];
-EQUAL[45; .rk.get "as.pairlist(TRUE)"; (enlist 1b; ())];
-EQUAL[46; .rk.get "as.pairlist(as.raw(1))"; (enlist 0x01; ())];
-EQUAL[47; .rk.get "pairlist('rnorm', 10L, 0.0, 2.0 )"; ("rnorm";();enlist 10i;();enlist 0f;();enlist 2f;())];
+EQUAL[48; .rk.get "as.pairlist(1:10)"; (enlist 1i;();enlist 2i;();enlist 3i;();enlist 4i;();enlist 5i;();enlist 6i;();enlist 7i;();enlist 8i;();enlist 9i;();enlist 10i;())];
+EQUAL[49; .rk.get "as.pairlist(TRUE)"; (enlist 1b; ())];
+EQUAL[50; .rk.get "as.pairlist(as.raw(1))"; (enlist 0x01; ())];
+EQUAL[51; .rk.get "pairlist('rnorm', 10L, 0.0, 2.0 )"; ("rnorm";();enlist 10i;();enlist 0f;();enlist 2f;())];
 .rk.get "list(x ~ y + z)"
-EQUAL[48; .rk.get "list( c(1, 5), c(2, 6), c(3, 7) )"; (1 5f;2 6f;3 7f)];
-EQUAL[49; .rk.get "matrix( 1:16+.5, nc = 4 )"; (1.5 5.5 9.5 13.5;2.5 6.5 10.5 14.5;3.5 7.5 11.5 15.5;4.5 8.5 12.5 16.5)];
+EQUAL[52; .rk.get "list( c(1, 5), c(2, 6), c(3, 7) )"; (1 5f;2 6f;3 7f)];
+EQUAL[53; .rk.get "matrix( 1:16+.5, nc = 4 )"; (1.5 5.5 9.5 13.5;2.5 6.5 10.5 14.5;3.5 7.5 11.5 15.5;4.5 8.5 12.5 16.5)];
 .rk.get "Instrument <- setRefClass(Class='Instrument',fields=list('id'='character', 'description'='character'))"
 .rk.get "Instrument$accessors(c('id', 'description'))"
 .rk.get "Instrument$new(id='AAPL', description='Apple')"
-EQUAL[50; .rk.get "(1+1i)"; "complex"];
-EQUAL[51; .rk.get "(0:9)^2"; 0 1 4 9 16 25 36 49 64 81f];
-EQUAL[52; .rk.get"expression(rnorm, rnorm(10), mean(1:10))"; "expression"];
-EQUAL[53; .rk.get"list( rep(NA_real_, 20L), rep(NA_real_, 6L) )"; (0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n;0n 0n 0n 0n 0n 0n)];
-EQUAL[54; .rk.get"c(1, 2, 1, 1, NA, NaN, -Inf, Inf)"; 1 2 1 1 0n 0n -0w 0w];
+EQUAL[54; .rk.get "(1+1i)"; "complex"];
+EQUAL[55; .rk.get "(0:9)^2"; 0 1 4 9 16 25 36 49 64 81f];
+EQUAL[56; .rk.get"expression(rnorm, rnorm(10), mean(1:10))"; "expression"];
+EQUAL[57; .rk.get"list( rep(NA_real_, 20L), rep(NA_real_, 6L) )"; (0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n;0n 0n 0n 0n 0n 0n)];
+EQUAL[58; .rk.get"c(1, 2, 1, 1, NA, NaN, -Inf, Inf)"; 1 2 1 1 0n 0n -0w 0w];
 
 PROGRESS["List Test Finished!!"];
 
@@ -182,14 +193,14 @@ PROGRESS["List Test Finished!!"];
 // long vectors
 .rk.exec"x<-c(as.raw(1))"
 //.rk.exec"x[2147483648L]<-as.raw(1)"
-EQUAL[55; count .rk.get`x; 1];
+EQUAL[59; count .rk.get`x; 1];
 
-EQUAL[56; .[.rk.set;("x[0]";1); "nyi"~]; 1b];
-EQUAL[57; .rk.get["c()"]; .rk.get"NULL"];
-EQUAL[58; (); .rk.get"c()"];
-EQUAL[59; {@[.rk.get;x;"type"~]}each (.z.p;0b;1;1f;{};([1 2 3]1 2 3)); 111111b];
+EQUAL[60; .[.rk.set;("x[0]";1); "nyi"~]; 1b];
+EQUAL[61; .rk.get["c()"]; .rk.get"NULL"];
+EQUAL[62; (); .rk.get"c()"];
+EQUAL[63; {@[.rk.get;x;"type"~]}each (.z.p;0b;1;1f;{};([1 2 3]1 2 3)); 111111b];
 .rk.set[`x;1]
-EQUAL[60; .rk.get each ("x";enlist "x";`x;`x`x); 1#/:(1;1;1;1)]; // ("x";"x")?
+EQUAL[64; .rk.get each ("x";enlist "x";`x;`x`x); 1#/:(1;1;1;1)]; // ("x";"x")?
 
 PROGRESS["Q-Like R Command Test Finished!!"];
 
@@ -208,16 +219,16 @@ PROGRESS["Q-Like R Command Test Finished!!"];
 .rk.install`data.table
 .rk.exec"library(data.table)"
 .rk.exec"a<-data.frame(a=c(1,2))"
-EQUAL[61; .rk.get`a; flip enlist[`a]!enlist (1 2f)];
+EQUAL[65; .rk.get`a; flip enlist[`a]!enlist (1 2f)];
 .rk.exec "b<-data.table(a=c(1,2))"
-EQUAL[62; .rk.get`b; flip enlist[`a]!enlist (1 2f)];
+EQUAL[66; .rk.get`b; flip enlist[`a]!enlist (1 2f)];
 .rk.exec"inspect <- function(x, ...) .Internal(inspect(x,...))"
 .rk.get`inspect
 .rk.get"substitute(log(1))"
 
-EQUAL[63; flip[`a`b!(`1`2`1;`a`b`b)]; .rk.get"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
-EQUAL[64; flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
-EQUAL[65; flip[`a`b!(`1`2`1;`10`20`30)]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"];
+EQUAL[67; flip[`a`b!(`1`2`1;`a`b`b)]; .rk.get"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
+EQUAL[68; flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
+EQUAL[69; flip[`a`b!(`1`2`1;`10`20`30)]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"];
 
 PROGRESS["Completed!!"];
 // all {.[.rk.set;("x";0N!x);"main thread only"~]} peach 2#enlist ([]1 2)

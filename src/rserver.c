@@ -21,7 +21,7 @@ ZK kinta(J len, int rank, int *shape, int *val);
 ZK klonga(J len, int rank, int *shape, J*val);
 ZK kdoublev(J len, double *val);
 ZK kdoublea(J len, int rank, int *shape, double *val);
-ZK from_any_robject(SEXP sxp);
+ZK atom_value_dict(J len, K v, SEXP keys);
 
 __thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
 __thread int RLOAD=0;
@@ -166,6 +166,15 @@ ZK attR(K x,SEXP sxp)
 	SEXP att = ATTRIB(sxp);
 	if (isNull(att)) return x;
 	return addattR(x,att);
+}
+
+ZK atom_value_dict(J len, K v, SEXP keys){
+   	K k= ktn(KS, len);
+    for(J i= 0; i < len; i++) {
+    	const char *keyName= CHAR(STRING_ELT(keys, i));
+    	kS(k)[i]= ss((S) keyName);
+    }
+    return xD(k,v);
 }
 
 ZK error_broken_robject(SEXP sxp)
@@ -325,7 +334,14 @@ ZK from_logical_robject(SEXP sxp)
 	J len = XLENGTH(sxp);
 	SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
+		//Process values
 		x = klogicv(len,LOGICAL(sxp));
+		//Dictionary with atom values
+		SEXP keyNames= getAttrib(sxp, R_NamesSymbol);
+		if(!isNull(keyNames)&&len==XLENGTH(keyNames)){
+    		return atom_value_dict(len, x, keyNames);
+  	  	}
+	  	//Normal kdb+ list
 		return attR(x,sxp);
 	}
 	x = klogica(len,length(dim),INTEGER(dim),LOGICAL(sxp));
@@ -345,7 +361,14 @@ ZK from_integer_robject(SEXP sxp){
 	J len = XLENGTH(sxp);
 	SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
+		//Process values
 		x = kintv(len,INTEGER(sxp));
+		//Dictionary with atom values
+		SEXP keyNames= getAttrib(sxp, R_NamesSymbol);
+		if(!isNull(keyNames)&&len==XLENGTH(keyNames)){
+    		return atom_value_dict(len, x, keyNames);
+  		}
+		//Normal kdb+ list
 		return attR(x,sxp);
 	}
 	x = kinta(len,length(dim),INTEGER(dim),INTEGER(sxp));
@@ -366,15 +389,25 @@ ZK from_double_robject(SEXP sxp){
 	J len = XLENGTH(sxp);
 	SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
+	  //Process values
 	  nano = isClass("nanotime",sxp);
       if(nano || bit64) {
         x=ktn(nano?KP:KJ,len);
         DO(len,kJ(x)[i]=INT64(sxp)[i])
         if(nano)
           DO(len,if(kJ(x)[i]!=nj)kJ(x)[i]-=epoch_offset)
-        return x;
-      }
-      x= kdoublev(len, REAL(sxp));
+      }else{
+		x= kdoublev(len, REAL(sxp));
+	  }
+	  //Dictionary with atom values
+	  SEXP keyNames= getAttrib(sxp, R_NamesSymbol);
+	  if(!isNull(keyNames)&&len==XLENGTH(keyNames)){
+    	return atom_value_dict(len, x, keyNames);
+  	  }else if(nano || bit64){
+		//Class object
+		return x;
+	  }
+	  //Normal kdb+ list
       return attR(x, sxp);  
 	}
     if(bit64){
@@ -414,7 +447,7 @@ ZK from_vector_robject(SEXP sxp)
 	J i, length = LENGTH(sxp);
 	K x = ktn(0, length);
 	for (i = 0; i < length; i++) {
-		xK[i] = from_any_robject(VECTOR_ELT(sxp, i));
+		kK(x)[i] = from_any_robject(VECTOR_ELT(sxp, i));
 	}
     SEXP colNames= getAttrib(sxp, R_NamesSymbol);
  	if(!isNull(colNames)&&length==XLENGTH(colNames)){

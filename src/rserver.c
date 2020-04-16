@@ -239,7 +239,7 @@ ZK from_raw_robject(SEXP sxp)
 ZK from_date_robject(SEXP sxp) {
   K x;
   J length= XLENGTH(sxp);
-  x= ktn(KD,length);
+  x= ktn(isClass("month", sxp)?KM:KD,length);
   int type= TYPEOF(sxp);
   switch(type) {
     case INTSXP:
@@ -321,6 +321,8 @@ ZK from_difftime_robject(SEXP sxp){
     return from_second_or_minute_robject(sxp);
   else if(isUnit("days", sxp))
     return from_days_robject(sxp);
+  else if(isUnit("timespan", sxp))
+    return from_double_robject(sxp);
   else /* hours */
     return from_nyi_robject(sxp);
 }
@@ -432,14 +434,15 @@ ZK from_integer_robject(SEXP sxp){
 
 ZK from_double_robject(SEXP sxp){
 	K x;
-	I nano, bit64=isClass("integer64",sxp);
+	I nano, span, bit64=isClass("integer64",sxp);
 	J len = XLENGTH(sxp);
 	SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
 	  //Process values
 	  nano = isClass("nanotime",sxp);
-      if(nano || bit64) {
-        x=ktn(nano?KP:KJ,len);
+	  span = isClass("difftime", sxp) && isUnit("timespan", sxp);
+      if(nano || span || bit64) {
+        x=ktn(nano?KP:(span?KN:KJ),len);
         DO(len,kJ(x)[i]=INT64(sxp)[i])
         if(nano)
           DO(len,if(kJ(x)[i]!=nj)kJ(x)[i]-=epoch_offset)
@@ -450,7 +453,7 @@ ZK from_double_robject(SEXP sxp){
 	  SEXP keyNames= getAttrib(sxp, R_NamesSymbol);
 	  if(!isNull(keyNames)&&len==XLENGTH(keyNames)){
     	return atom_value_dict(len, x, keyNames);
-  	  }else if(nano || bit64){
+  	  }else if(nano || span || bit64){
 		//Class object
 		return x;
 	  }

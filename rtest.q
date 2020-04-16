@@ -180,26 +180,34 @@ EQUAL[51; .rk.get"as.difftime(c(1, 2), units=\"secs\")"; 00:00:01 00:00:02];
 EQUAL[52; .rk.get"days"; 1D 2D];
 EQUAL[53; .rk.get"as.difftime(c(1, 2), units=\"days\")"; 1D 2D];
 
+// month
+.rk.set["mnth"; `month$/:2020.04.02 2010.01.29]
+EQUAL[54; .rk.get"mnth"; 2020.04 2010.01m];
+
+// timespan
+.rk.set["tmspans"; 0D12 0D04:20:17.123456789]
+EQUAL[55; .rk.get"tmspans"; 0D12 0D04:20:17.123456789];
+
 PROGRESS["Time Test Finished!!"];
 
 //List//---------------------------------------/
 
 //lang
-EQUAL[48; .rk.get "as.pairlist(1:10)"; (enlist 1i;();enlist 2i;();enlist 3i;();enlist 4i;();enlist 5i;();enlist 6i;();enlist 7i;();enlist 8i;();enlist 9i;();enlist 10i;())];
-EQUAL[49; .rk.get "as.pairlist(TRUE)"; (enlist 1b; ())];
-EQUAL[50; .rk.get "as.pairlist(as.raw(1))"; (enlist 0x01; ())];
-EQUAL[51; .rk.get "pairlist('rnorm', 10L, 0.0, 2.0 )"; ("rnorm";();enlist 10i;();enlist 0f;();enlist 2f;())];
+EQUAL[56; .rk.get "as.pairlist(1:10)"; (enlist 1i;();enlist 2i;();enlist 3i;();enlist 4i;();enlist 5i;();enlist 6i;();enlist 7i;();enlist 8i;();enlist 9i;();enlist 10i;())];
+EQUAL[57; .rk.get "as.pairlist(TRUE)"; (enlist 1b; ())];
+EQUAL[58; .rk.get "as.pairlist(as.raw(1))"; (enlist 0x01; ())];
+EQUAL[59; .rk.get "pairlist('rnorm', 10L, 0.0, 2.0 )"; ("rnorm";();enlist 10i;();enlist 0f;();enlist 2f;())];
 .rk.get "list(x ~ y + z)"
-EQUAL[52; .rk.get "list( c(1, 5), c(2, 6), c(3, 7) )"; (1 5f;2 6f;3 7f)];
-EQUAL[53; .rk.get "matrix( 1:16+.5, nc = 4 )"; (1.5 5.5 9.5 13.5;2.5 6.5 10.5 14.5;3.5 7.5 11.5 15.5;4.5 8.5 12.5 16.5)];
+EQUAL[60; .rk.get "list( c(1, 5), c(2, 6), c(3, 7) )"; (1 5f;2 6f;3 7f)];
+EQUAL[61; .rk.get "matrix( 1:16+.5, nc = 4 )"; (1.5 5.5 9.5 13.5;2.5 6.5 10.5 14.5;3.5 7.5 11.5 15.5;4.5 8.5 12.5 16.5)];
 .rk.get "Instrument <- setRefClass(Class='Instrument',fields=list('id'='character', 'description'='character'))"
 .rk.get "Instrument$accessors(c('id', 'description'))"
 .rk.get "Instrument$new(id='AAPL', description='Apple')"
-EQUAL[54; .rk.get "(1+1i)"; "complex"];
-EQUAL[55; .rk.get "(0:9)^2"; 0 1 4 9 16 25 36 49 64 81f];
-EQUAL[56; .rk.get"expression(rnorm, rnorm(10), mean(1:10))"; "expression"];
-EQUAL[57; .rk.get"list( rep(NA_real_, 20L), rep(NA_real_, 6L) )"; (0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n;0n 0n 0n 0n 0n 0n)];
-EQUAL[58; .rk.get"c(1, 2, 1, 1, NA, NaN, -Inf, Inf)"; 1 2 1 1 0n 0n -0w 0w];
+EQUAL[62; .rk.get "(1+1i)"; "complex"];
+EQUAL[63; .rk.get "(0:9)^2"; 0 1 4 9 16 25 36 49 64 81f];
+EQUAL[64; .rk.get"expression(rnorm, rnorm(10), mean(1:10))"; "expression"];
+EQUAL[65; .rk.get"list( rep(NA_real_, 20L), rep(NA_real_, 6L) )"; (0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n 0n;0n 0n 0n 0n 0n 0n)];
+EQUAL[66; .rk.get"c(1, 2, 1, 1, NA, NaN, -Inf, Inf)"; 1 2 1 1 0n 0n -0w 0w];
 
 PROGRESS["List Test Finished!!"];
 
@@ -208,14 +216,14 @@ PROGRESS["List Test Finished!!"];
 // long vectors
 .rk.exec"x<-c(as.raw(1))"
 //.rk.exec"x[2147483648L]<-as.raw(1)"
-EQUAL[59; count .rk.get`x; 1];
+EQUAL[67; count .rk.get`x; 1];
 
-EQUAL[60; .[.rk.set;("x[0]";1); "nyi"~]; 1b];
-EQUAL[61; .rk.get["c()"]; .rk.get"NULL"];
-EQUAL[62; (); .rk.get"c()"];
-EQUAL[63; {@[.rk.get;x;"type"~]}each (.z.p;0b;1;1f;{};([1 2 3]1 2 3)); 111111b];
+EQUAL[68; .[.rk.set;("x[0]";1); "nyi"~]; 1b];
+EQUAL[69; .rk.get["c()"]; .rk.get"NULL"];
+EQUAL[70; (); .rk.get"c()"];
+EQUAL[71; {@[.rk.get;x;"type"~]}each (.z.p;0b;1;1f;{};([1 2 3]1 2 3)); 111111b];
 .rk.set[`x;1]
-EQUAL[64; .rk.get each ("x";enlist "x";`x;`x`x); 1#/:(1;1;1;1)]; // ("x";"x")?
+EQUAL[72; .rk.get each ("x";enlist "x";`x;`x`x); 1#/:(1;1;1;1)]; // ("x";"x")?
 
 PROGRESS["Q-Like R Command Test Finished!!"];
 
@@ -234,16 +242,16 @@ PROGRESS["Q-Like R Command Test Finished!!"];
 .rk.install`data.table
 .rk.exec"library(data.table)"
 .rk.exec"a<-data.frame(a=c(1,2))"
-EQUAL[65; .rk.get`a; flip enlist[`a]!enlist (1 2f)];
+EQUAL[73; .rk.get`a; flip enlist[`a]!enlist (1 2f)];
 .rk.exec "b<-data.table(a=c(1,2))"
-EQUAL[66; .rk.get`b; flip enlist[`a]!enlist (1 2f)];
+EQUAL[74; .rk.get`b; flip enlist[`a]!enlist (1 2f)];
 .rk.exec"inspect <- function(x, ...) .Internal(inspect(x,...))"
 .rk.get`inspect
 .rk.get"substitute(log(1))"
 
-EQUAL[67; flip[`a`b!(`1`2`1;`a`b`b)]; .rk.get"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
-EQUAL[68; flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
-EQUAL[69; flip[`a`b!(`1`2`1;`10`20`30)]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"];
+EQUAL[75; flip[`a`b!(`1`2`1;`a`b`b)]; .rk.get"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
+EQUAL[76; flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
+EQUAL[77; flip[`a`b!(`1`2`1;`10`20`30)]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"];
 
 PROGRESS["Completed!!"];
 // all {.[.rk.set;("x";0N!x);"main thread only"~]} peach 2#enlist ([]1 2)

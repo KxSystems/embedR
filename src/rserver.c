@@ -159,7 +159,8 @@ ZK addattR (K x,SEXP att) {
 /* add attribute if any */
 ZK attR(K x,SEXP sxp) {
   SEXP att = ATTRIB(sxp);
-  if (isNull(att)) return x;
+  if (isNull(att))
+    return x;
   return addattR(x,att);
 }
 
@@ -429,7 +430,7 @@ ZK from_double_robject(SEXP sxp){
     x= klonga(len, length(dim), INTEGER(dim), (J*)REAL(sxp));
   else
     x= kdoublea(len, length(dim), INTEGER(dim), REAL(sxp));
-  SEXP dimnames = GET_DIMNAMES(sxp);
+  SEXP dimnames= getAttrib(sxp, R_DimNamesSymbol);
   if (!isNull(dimnames))
     return attR(x,sxp);
   SEXP e;
@@ -450,7 +451,7 @@ ZK from_character_robject(SEXP sxp) {
   else {
     x = ktn(0, length);
     for (i = 0; i < length; i++)
-      xK[i] = kp((char*) CHAR(STRING_ELT(sxp,i)));
+      kK(x)[i] = kp((char*) CHAR(STRING_ELT(sxp,i)));
   }
   return attR(x,sxp);
 }
@@ -481,17 +482,17 @@ static char * getkstring(K x) {
   char *s=NULL;
   int len;
   switch (xt) {
-  case -KC :
-    s = calloc(2,1); s[0] = xg;
-    break;
-  case KC :
-    s = calloc(1+xn,1); memmove(s, xG, xn);
-    break;
-  case -KS : // TODO: xs is already 0 terminated and fixed. can just return xs
-    len = 1+strlen(xs);
-    s = calloc(len,1); memmove(s, xs, len); break;
-  default :
-    krr("invalid name");
+    case -KC :
+      s = calloc(2,1); s[0] = xg;
+      break;
+    case KC :
+      s = calloc(1+xn,1); memmove(s, xG, xn);
+      break;
+    case -KS : // TODO: xs is already 0 terminated and fixed. can just return xs
+      len = 1+strlen(xs);
+      s = calloc(len,1); memmove(s, xs, len); break;
+    default :
+      krr("invalid name");
   }
   return s;
 }
@@ -511,27 +512,27 @@ ZK klogica(J len, int rank, int *shape, int *val) {
   K x, y;
   J i, j, r, c, k;
   switch(rank) {
-  case 1:
-    x= kintv(len, val);
-    break;
-  case 2:
-    r= shape[0];
-    c= shape[1];
-    x= knk(0);
-    for(i= 0; i < r; i++) {
-      y= ktn(KB, c);
-      for(j= 0; j < c; j++)
-        kG(y)[j]= val[i + r * j];
-      x= jk(&x, y);
-    };
-    break;
-  default:
-    k= rank - 1;
-    r= shape[k];
-    c= len / r;
-    x= knk(0);
-    for(i= 0; i < r; i++)
-      x= jk(&x, klogica(c, k, shape, val + c * i));
+    case 1:
+      x= kintv(len, val);
+      break;
+    case 2:
+      r= shape[0];
+      c= shape[1];
+      x= knk(0);
+      for(i= 0; i < r; i++) {
+        y= ktn(KB, c);
+        for(j= 0; j < c; j++)
+          kG(y)[j]= val[i + r * j];
+        x= jk(&x, y);
+      };
+      break;
+    default:
+      k= rank - 1;
+      r= shape[k];
+      c= len / r;
+      x= knk(0);
+      for(i= 0; i < r; i++)
+        x= jk(&x, klogica(c, k, shape, val + c * i));
   }
   return x;
 }
@@ -556,7 +557,7 @@ ZK kinta(J len, int rank, int *shape, int *val) {
       for (i=0;i<r;i++) {
         y = ktn(KI,c);
         for (j=0;j<c;j++)
-	  kI(y)[j] = val[i+r*j];
+	        kI(y)[j] = val[i+r*j];
         x = jk(&x,y);
       };
       break;

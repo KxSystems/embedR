@@ -8,7 +8,7 @@ before_install:
 script:
 - make
 - echo "Preparing version $TRAVIS_BRANCH-$TRAVIS_COMMIT"
-- mkdir embedr; cp -r rinit.q rtest.q l32 l64 m32 m64 embedr/ || true;
+- mkdir embedr; cp -r init.q test.q l32 l64 m32 m64 embedr/ || true;
 - echo "$TRAVIS_BRANCH-$TRAVIS_COMMIT" > embedr/VERSION.embedr;
 - cp LICENSE embedr/LICENSE.embedr; cp README.md embedr/README.embedr;
 - tar czvf embedr_$TRAVIS_OS_NAME-$TRAVIS_BRANCH.tar.gz embedr

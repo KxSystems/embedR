@@ -21,7 +21,7 @@ environment:
 
 build_script:
 - cmd: mkdir w%BITS%
-- cmd: R.exe CMD SHLIB -o w%BITS%/embedr.dll embedr.c src/w%BITS%/q.a -lws2_32
+- cmd: R.exe CMD SHLIB -o w%BITS%/embedr.dll src/embedr.c src/w%BITS%/q.a -lws2_32
 
 after_build:
 - cmd: mkdir embedr

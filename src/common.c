@@ -493,7 +493,12 @@ static SEXP from_timespan_kobject(K x) {
   PROTECT(result);
 
   //judge timespan or days
-  if(((INT64(result)[0]/1000000000LL) % sec2day)==0){
+  int isDay=1;
+  const int examine=n<5?n:5;
+  for(int j= 0; j < examine; j++)
+    isDay= (((INT64(result)[j] % sec2day)==0) < isDay)?0:isDay;
+  
+  if(isDay){
     //difftime days
     SEXP realresult;
     PROTECT(realresult=allocVector(REALSXP, n));

@@ -161,9 +161,24 @@ EQUAL[45; .rk.get"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:
 .rk.set["dttm"; 2018.02.18T04:00:01.000z];
 EQUAL[46; .rk.get"dttm"; (), 2018.02.18T04:00:01.000z];
 
-//timestamp
+// timestamp
 .rk.set["tmstp"; 2020.03.16D17:30:45.123456789];
 EQUAL[47; .rk.get"tmstp"; (), 2020.03.16D17:30:45.123456789];
+
+// second
+.rk.set["scnd"; `second$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
+EQUAL[48; .rk.get"scnd"; 12:00:30 12:30:45];
+EQUAL[49; .rk.get"as.difftime(c(1, 2), units=\"mins\")"; 00:01 00:02];
+
+// minute
+.rk.set["mnt"; `minute$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
+EQUAL[50; .rk.get "mnt"; 12:00 12:30];
+EQUAL[51; .rk.get"as.difftime(c(1, 2), units=\"secs\")"; 00:00:01 00:00:02];
+
+// days
+.rk.set["days"; 1D 2D];
+EQUAL[52; .rk.get"days"; 1D 2D];
+EQUAL[53; .rk.get"as.difftime(c(1, 2), units=\"days\")"; 1D 2D];
 
 PROGRESS["Time Test Finished!!"];
 

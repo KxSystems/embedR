@@ -19,10 +19,10 @@
 #endif
 
 #include <R_ext/Parse.h>
-#include "src/socketpair.c"
+#include "socketpair.c"
 
 #define KXVER 3
-#include "src/k.h"
+#include "k.h"
 #define INT64(x)   ((J*) REAL(x))
 // Offsets used in conversion between R and q
 static J epoch_offset=10957*24*60*60*1000000000LL;
@@ -32,7 +32,7 @@ static int sec2day = 86400;
 static int kdbDateOffset = 10957;
 static int kdbSecOffset  = 946684800;
 
-#include "src/common.c"
-#include "src/rserver.c"
+#include "common.c"
+#include "rserver.c"
 
 int R_SignalHandlers = 0;

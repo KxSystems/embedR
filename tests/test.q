@@ -29,7 +29,7 @@ EQUAL:{[id;x;y]
 //%% System Setting %%//vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv/
 
 //Load embedR file
-\l rinit.q
+\l ../init.q
 
 //Set seed 42
 \S 42

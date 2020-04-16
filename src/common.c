@@ -139,6 +139,7 @@ static SEXP R_UnitsSymbol = NULL;
 static SEXP R_TzSymbol = NULL;
 
 /* for timespan, minute, second */
+//Available units: "secs", "mins", "hours", "days", "weeks"
 static SEXP setdifftimeclass(SEXP sxp, char* units) {
   SEXP difftimeclass= PROTECT(allocVector(STRSXP, 1));
   SET_STRING_ELT(difftimeclass, 0, mkChar("difftime"));
@@ -162,11 +163,20 @@ static SEXP settimezone(SEXP sxp, char* tzone) {
   UNPROTECT(1);
   return sxp;
 }
-
-/* for date,month */
+/* for date */
 static SEXP setdateclass(SEXP sxp) {
   SEXP difftimeclass= PROTECT(allocVector(STRSXP, 1));
   SET_STRING_ELT(difftimeclass, 0, mkChar("Date"));
+  classgets(sxp, difftimeclass);
+  UNPROTECT(1);
+  return sxp;
+}
+
+/* month */
+static SEXP setmonthclass(SEXP sxp){
+  SEXP difftimeclass= PROTECT(allocVector(STRSXP, 2));
+  SET_STRING_ELT(difftimeclass, 0, mkChar("Date"));
+  SET_STRING_ELT(difftimeclass, 1, mkChar("month"));
   classgets(sxp, difftimeclass);
   UNPROTECT(1);
   return sxp;
@@ -431,8 +441,13 @@ static SEXP from_symbol_kobject(K x) {
   return result;
 }
 
-static SEXP from_month_kobject(K object) {
-  return from_int_kobject(object);
+static SEXP from_month_kobject(K x) {
+  SEXP result=PROTECT(from_int_kobject(x));
+  for(J i= 0; i < XLENGTH(result); i++)
+    if(INTEGER(result)[i]!=NA_INTEGER) INTEGER(result)[i]+=kdbDateOffset;
+  setmonthclass(result);
+  UNPROTECT(1);
+  return result;
 }
 
 static SEXP from_date_kobject(K x) {
@@ -473,7 +488,27 @@ static SEXP from_time_kobject(K object) {
 }
 
 static SEXP from_timespan_kobject(K x) {
-  return from_long_kobject(x);
+  SEXP result=from_long_kobject(x);
+  J i,n=XLENGTH(result);
+  PROTECT(result);
+
+  //judge timespan or days
+  if(((INT64(result)[0]/1000000000LL) % sec2day)==0){
+    //difftime days
+    SEXP realresult;
+    PROTECT(realresult=allocVector(REALSXP, n));
+    for(i= 0; i < n; i++)
+      REAL(realresult)[i]=(INT64(result)[i]!=nj)?((INT64(result)[i]/1000000000LL)/sec2day):NA_REAL;
+    setdifftimeclass(realresult,"days");
+    UNPROTECT(2);
+    return realresult;
+  }
+  else{
+    //timespan
+    setdifftimeclass(result,"timespan");
+    UNPROTECT(1);
+    return result;
+  }
 }
 
 static SEXP from_timestamp_kobject(K x) {

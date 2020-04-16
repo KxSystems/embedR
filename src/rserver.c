@@ -40,6 +40,9 @@ ZK from_date_robject(SEXP);
 ZK from_datetime_robject(SEXP);
 ZK from_datetime_ct_robject(SEXP);
 ZK from_datetime_lt_robject(SEXP);
+ZK from_difftime_robject(SEXP);
+ZK from_second_or_minute_robject(SEXP);
+ZK from_days_robject(SEXP);
 ZK from_char_robject(SEXP);
 ZK from_logical_robject(SEXP);
 ZK from_integer_robject(SEXP);
@@ -63,6 +66,14 @@ Rboolean isClass(const char *class_, SEXP s) {
   return FALSE;
 }
 
+Rboolean isUnit(const char *units_, SEXP s){
+  SEXP unit;
+  unit=getAttrib(s, R_UnitsSymbol);
+  if(!strcmp(CHAR(asChar(unit)), units_))
+    return TRUE;
+  return FALSE;
+}
+
 ZK from_any_robject(SEXP sxp){
   if(isClass("data.frame", sxp))
     return from_frame_robject(sxp);
@@ -72,6 +83,8 @@ ZK from_any_robject(SEXP sxp){
     return from_date_robject(sxp);
   if(isClass("POSIXt", sxp))
     return from_datetime_robject(sxp);
+  if(isClass("difftime", sxp))
+    return from_difftime_robject(sxp);
   K result = 0;
   int type = TYPEOF(sxp);
   switch (type) {
@@ -202,7 +215,7 @@ ZK from_raw_robject(SEXP sxp) {
 ZK from_date_robject(SEXP sxp) {
   K x;
   J length= XLENGTH(sxp);
-  x= ktn(KD,length);
+  x= ktn(isClass("month", sxp)?KM:KD,length);
   int type= TYPEOF(sxp);
   switch(type) {
     case INTSXP:
@@ -253,6 +266,41 @@ ZK from_datetime_robject(SEXP sxp) {
     return from_datetime_ct_robject(sxp);
   else
     return from_datetime_lt_robject(sxp);
+}
+
+ZK from_second_or_minute_robject(SEXP sxp){
+  K x;
+  J length=XLENGTH(sxp);
+  x=ktn(isUnit("secs", sxp)?KV:KU, length);
+  int type=TYPEOF(sxp);
+  switch(type){
+	case INTSXP:
+	  DO(length, kI(x)[i]=INTEGER(sxp)[i]);
+	  break;
+	default:
+	  DO(length,kI(x)[i]=ISNA(REAL(sxp)[i])?NA_INTEGER:(I) REAL(sxp)[i]);
+  }
+  return x;
+}
+
+ZK from_days_robject(SEXP sxp){
+  K x;
+  J length= XLENGTH(sxp);
+  x= ktn(KN,length);
+  DO(length,kJ(x)[i]=(J) (REAL(sxp)[i]*sec2day)*1000000000LL)
+  return x;
+}
+
+//Wrapper function of difftime
+ZK from_difftime_robject(SEXP sxp){
+  if(isUnit("secs", sxp) || isUnit("mins", sxp))
+    return from_second_or_minute_robject(sxp);
+  else if(isUnit("days", sxp))
+    return from_days_robject(sxp);
+  else if(isUnit("timespan", sxp))
+    return from_double_robject(sxp);
+  else /* hours */
+    return from_nyi_robject(sxp);
 }
 
 // NULL in R(R_NilValue): often used as generic zero length vector
@@ -353,33 +401,34 @@ ZK from_integer_robject(SEXP sxp) {
 
 ZK from_double_robject(SEXP sxp){
   K x;
-  I nano, bit64=isClass("integer64",sxp);
+  I nano, span, bit64=isClass("integer64",sxp);
   J len = XLENGTH(sxp);
   SEXP dim= getAttrib(sxp, R_DimSymbol);
   if (isNull(dim)) {
     //Process values
     nano = isClass("nanotime",sxp);
-    if(nano || bit64) {
-      x=ktn(nano?KP:KJ,len);
+    span = isClass("difftime", sxp) && isUnit("timespan", sxp);
+    if(nano || span || bit64) {
+      x=ktn(nano?KP:(span?KN:KJ),len);
       DO(len,kJ(x)[i]=INT64(sxp)[i])
       if(nano)
         DO(len,if(kJ(x)[i]!=nj)kJ(x)[i]-=epoch_offset)
-  }
-  else
-    x= kdoublev(len, REAL(sxp));
-  //Dictionary with atom values
-  SEXP keyNames= getAttrib(sxp, R_NamesSymbol);
-  if(!isNull(keyNames)&&len==XLENGTH(keyNames))
-    return atom_value_dict(len, x, keyNames);
-  else if(nano || bit64)
-    return x;
+    }
+    else
+      x= kdoublev(len, REAL(sxp));
+    //Dictionary with atom values
+    SEXP keyNames= getAttrib(sxp, R_NamesSymbol);
+    if(!isNull(keyNames)&&len==XLENGTH(keyNames))
+      return atom_value_dict(len, x, keyNames);
+    else if(nano || span || bit64)
+      return x;
   //Normal kdb+ list
   return attR(x, sxp);  
   }
   if(bit64)
     x= klonga(len, length(dim), INTEGER(dim), (J*)REAL(sxp));
   else
-      x= kdoublea(len, length(dim), INTEGER(dim), REAL(sxp));
+    x= kdoublea(len, length(dim), INTEGER(dim), REAL(sxp));
   SEXP dimnames = GET_DIMNAMES(sxp);
   if (!isNull(dimnames))
     return attR(x,sxp);

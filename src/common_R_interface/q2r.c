@@ -1,5 +1,12 @@
+/*-----------------------------------------------*/
+/*  File: q2r.c                                  */
+/*  Overview: Common code for Q -> R interface   */
+/*-----------------------------------------------*/
+
 /*
- * common code for Q/R interface
+ * The public interface used from Q.
+ * https://cran.r-project.org/doc/manuals/r-release/R-ints.pdf
+ * https://cran.r-project.org/doc/manuals/r-release/R-exts.html
  */
 
 int kx_connection=0;
@@ -54,66 +61,26 @@ char* get_type_name(Sint type) {
 }
 
 /*
- * Given the appropriate names, types, and lengths, create an R named list.
- */
-SEXP make_named_list(char **names, SEXPTYPE *types, Sint *lengths, Sint n) {
-  SEXP output, output_names, object = NULL_USER_OBJECT;
-  Sint elements;
-  PROTECT(output = NEW_LIST(n));
-  PROTECT(output_names = NEW_CHARACTER(n));
-  for(int i = 0; i < n; i++){
-    elements = lengths[i];
-    switch((int)types[i]) {
-    case LGLSXP:
-      PROTECT(object = NEW_LOGICAL(elements));
-      break;
-    case INTSXP:
-      PROTECT(object = NEW_INTEGER(elements));
-      break;
-    case REALSXP:
-      PROTECT(object = NEW_NUMERIC(elements));
-      break;
-    case STRSXP:
-      PROTECT(object = NEW_CHARACTER(elements));
-      break;
-    case VECSXP:
-      PROTECT(object = NEW_LIST(elements));
-      break;
-    default:
-      error("Unsupported data type at %d %s\n", __LINE__, __FILE__);
-    }
-    SET_VECTOR_ELT(output, (Sint)i, object);
-    SET_STRING_ELT(output_names, i, COPY_TO_USER_STRING(names[i]));
-  }
-  SET_NAMES(output, output_names);
-  UNPROTECT(n+2);
-  return output;
-}
-
-/*
  * Make a data.frame from a named list by adding row.names, and class
  * attribute. Uses "1", "2", .. as row.names.
  */
 void make_data_frame(SEXP data) {
-  SEXP class_name, row_names; Sint n;
-  PROTECT(data);
-  PROTECT(class_name = NEW_CHARACTER((Sint) 1));
-  SET_STRING_ELT(class_name, 0, COPY_TO_USER_STRING("data.frame"));
+  SEXP row_names;
   /* Set the row.names. */
-  n = GET_LENGTH(VECTOR_ELT(data,0));
-  PROTECT(row_names=NEW_INTEGER(2));
-  INTEGER(row_names)[0]=NA_INTEGER; 
-  INTEGER(row_names)[1]=-n;
+  J n= XLENGTH(VECTOR_ELT(data, 0));
+  PROTECT(row_names= allocVector(INTSXP,2));
+  INTEGER(row_names)[0]= NA_INTEGER;
+  INTEGER(row_names)[1]= -n;
   setAttrib(data, R_RowNamesSymbol, row_names);
-  SET_CLASS(data, class_name);
-  UNPROTECT(3);
+  classgets(data, PROTECT(mkString("data.frame")));
+  UNPROTECT(2);
 }
 
 /* for datetime */
 static SEXP setdatetimeclass(SEXP sxp) {
   SEXP datetimeclass = PROTECT(allocVector(STRSXP,2));
-  SET_STRING_ELT(datetimeclass, 0, mkChar("POSIXt"));
-  SET_STRING_ELT(datetimeclass, 1, mkChar("POSIXct"));
+  SET_STRING_ELT(datetimeclass, 0, mkChar("POSIXct"));
+  SET_STRING_ELT(datetimeclass, 1, mkChar("POSIXt"));
   classgets(sxp, datetimeclass);
   UNPROTECT(1);
   return sxp;
@@ -218,7 +185,7 @@ static SEXP from_second_kobject(K);
 static SEXP from_time_kobject(K);
 static SEXP from_timespan_kobject(K);
 static SEXP from_timestamp_kobject(K);
-static SEXP from_columns_kobject(K object);
+static SEXP from_columns_kobject(K);
 static SEXP from_dictionary_kobject(K);
 static SEXP from_table_kobject(K);
 
@@ -232,7 +199,7 @@ static K guid_2_char(K);
  */
 
 bool is_leap(const int year){
-  return (year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0);
+  return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
 int months2days(const int monthcount){
@@ -312,16 +279,16 @@ static SEXP from_any_kobject(K x) {
  */
 static SEXP from_columns_kobject(K x) {
   SEXP col, result;
-  int type, length = x->n;
+  J i, type, length= x->n;
   K c;
-  PROTECT(result = NEW_LIST(length));
-  for (int i = 0; i < length; i++) {
-    c = xK[i];
-    type = abs(c->t);
-    if (type == KC)
-      col = from_string_column_kobject(c);
+  PROTECT(result= allocVector(VECSXP,length));
+  for(i= 0; i < length; i++) {
+    c= kK(x)[i];
+    type= abs(c->t);
+    if(type == KC)
+      col= from_string_column_kobject(c);
     else
-      col = from_any_kobject(c);
+      col= from_any_kobject(c);
     SET_VECTOR_ELT(result, i, col);
   }
   UNPROTECT(1);
@@ -526,22 +493,22 @@ static SEXP from_datetime_kobject(K x) {
   return result;
 }
 
-static SEXP from_minute_kobject(K object) { 
-  SEXP result=PROTECT(from_int_kobject(object));
+static SEXP from_minute_kobject(K x) { 
+  SEXP result=PROTECT(from_int_kobject(x));
   setdifftimeclass(result,"mins");
   UNPROTECT(1); 
   return result; 
 }
 
-static SEXP from_second_kobject(K object) { 
-  SEXP result=PROTECT(from_int_kobject(object));
+static SEXP from_second_kobject(K x) { 
+  SEXP result=PROTECT(from_int_kobject(x));
   setdifftimeclass(result,"secs");
   UNPROTECT(1); 
   return result;
 }
 
-static SEXP from_time_kobject(K object) {
-  return from_int_kobject(object);
+static SEXP from_time_kobject(K x) {
+  return from_int_kobject(x);
 }
 
 static SEXP from_timespan_kobject(K x) {
@@ -610,7 +577,7 @@ static SEXP from_table_kobject(K x) {
   SEXP names, result;
   PROTECT(names = from_any_kobject(kK(x->k)[0]));
   PROTECT(result = from_columns_kobject(kK(x->k)[1]));
-  SET_NAMES(result, names);
+  setAttrib(result, R_NamesSymbol, names);
   UNPROTECT(2);
   make_data_frame(result);
   return result;

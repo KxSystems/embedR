@@ -163,21 +163,32 @@ static SEXP settimezone(SEXP sxp, char* tzone) {
   UNPROTECT(1);
   return sxp;
 }
+
 /* for date */
 static SEXP setdateclass(SEXP sxp) {
-  SEXP difftimeclass= PROTECT(allocVector(STRSXP, 1));
-  SET_STRING_ELT(difftimeclass, 0, mkChar("Date"));
-  classgets(sxp, difftimeclass);
+  SEXP timeclass= PROTECT(allocVector(STRSXP, 1));
+  SET_STRING_ELT(timeclass, 0, mkChar("Date"));
+  classgets(sxp, timeclass);
   UNPROTECT(1);
   return sxp;
 }
 
 /* month */
 static SEXP setmonthclass(SEXP sxp){
-  SEXP difftimeclass= PROTECT(allocVector(STRSXP, 2));
-  SET_STRING_ELT(difftimeclass, 0, mkChar("Date"));
-  SET_STRING_ELT(difftimeclass, 1, mkChar("month"));
-  classgets(sxp, difftimeclass);
+  SEXP timeclass= PROTECT(allocVector(STRSXP, 2));
+  SET_STRING_ELT(timeclass, 0, mkChar("Date"));
+  SET_STRING_ELT(timeclass, 1, mkChar("month"));
+  classgets(sxp, timeclass);
+  UNPROTECT(1);
+  return sxp;
+}
+
+/* for timespan */
+static SEXP settimespanclass(SEXP sxp) {
+  SEXP timeclass= PROTECT(allocVector(STRSXP, 2));
+  SET_STRING_ELT(timeclass, 0, mkChar("integer64"));
+  SET_STRING_ELT(timeclass, 1, mkChar("timespan"));
+  classgets(sxp, timeclass);
   UNPROTECT(1);
   return sxp;
 }
@@ -217,6 +228,31 @@ static SEXP from_table_kobject(K);
 static K guid_2_char(K);
 
 /*
+ * Functions to derive day count since kdb+ epoch from month count
+ */
+
+bool is_leap(const int year){
+  return (year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0);
+}
+
+int months2days(const int monthcount){
+  int days=0;
+  const int mdays[12]={31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  const int years = monthcount / 12;
+  for(int i= 0; i < years; i++)
+    days+=is_leap(2000+i)?366:365;
+  const int this_year = 2000+years;
+  const int months= monthcount % 12;
+  for(int i=0; i < months; i++){
+    if(i == 1)
+      days+=is_leap(this_year)?29:28;
+    else
+      days+=mdays[i];
+  }
+  return days;
+}
+
+/*
  * An array of functions that deal with kdbplus data types. Note that the order
  * is very important as we index it based on the kdb+ type number in the K object.
  */
@@ -242,8 +278,10 @@ static SEXP from_any_kobject(K x) {
     result = from_table_kobject(x);
   else if (XD == type)
     result = from_dictionary_kobject(x);
-  else if (105 == type || 101 == type)
-    result = from_int_kobject(ki(0));
+  else if(101 == type)
+    result= R_NilValue;
+  else if(105 == type)
+    result= from_int_kobject(ki(0));
   else if (type <= KT)
     result = kdbplus_types[type](x);
   else if (KT<type && type < 77){
@@ -461,7 +499,8 @@ static SEXP from_symbol_kobject(K x) {
 static SEXP from_month_kobject(K x) {
   SEXP result=PROTECT(from_int_kobject(x));
   for(J i= 0; i < XLENGTH(result); i++)
-    if(INTEGER(result)[i]!=NA_INTEGER) INTEGER(result)[i]+=kdbDateOffset;
+    if(INTEGER(result)[i]!=NA_INTEGER)
+      INTEGER(result)[i]=months2days(INTEGER(result)[i])+kdbDateOffset;
   setmonthclass(result);
   UNPROTECT(1);
   return result;
@@ -470,7 +509,8 @@ static SEXP from_month_kobject(K x) {
 static SEXP from_date_kobject(K x) {
   SEXP result=PROTECT(from_int_kobject(x));
   for(int i= 0; i < XLENGTH(result); i++)
-    if(INTEGER(result)[i]!=NA_INTEGER) INTEGER(result)[i]+=kdbDateOffset;
+    if(INTEGER(result)[i]!=NA_INTEGER)
+      INTEGER(result)[i]+=kdbDateOffset;
   setdateclass(result);
   UNPROTECT(1);
   return result;
@@ -513,7 +553,7 @@ static SEXP from_timespan_kobject(K x) {
   int isDay=1;
   const int examine=n<5?n:5;
   for(int j= 0; j < examine; j++)
-    isDay= (((INT64(result)[j] % sec2day)==0) < isDay)?0:isDay;
+    isDay= (((INT64(result)[j] % (sec2day*1000000000LL))==0) < isDay)?0:isDay;
   
   if(isDay){
     //difftime days
@@ -527,7 +567,7 @@ static SEXP from_timespan_kobject(K x) {
   }
   else{
     //timespan
-    setdifftimeclass(result,"timespan");
+    settimespanclass(result);
     UNPROTECT(1);
     return result;
   }

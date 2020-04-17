@@ -185,8 +185,8 @@ EQUAL[53; .rk.get"as.difftime(c(1, 2), units=\"days\")"; 1D 2D];
 EQUAL[54; .rk.get"mnth"; 2020.04 2010.01m];
 
 // timespan
-.rk.set["tmspans"; 0D12 0D04:20:17.123456789]
-EQUAL[55; .rk.get"tmspans"; 0D12 0D04:20:17.123456789];
+.rk.set["tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012]
+EQUAL[55; .rk.get"tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012];
 
 PROGRESS["Time Test Finished!!"];
 

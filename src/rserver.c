@@ -54,6 +54,41 @@ ZK from_nyi_robject(SEXP);
 ZK from_frame_robject(SEXP);
 ZK from_factor_robject(SEXP);
 
+
+/*
+ * Functions to derive month count since kdb epoch from day count
+ */
+
+extern bool is_leap(const int year);
+
+int days2months(const int daycount){
+  int year=2000, months=0, days=0;
+  const int mdays[12]={31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  while(true){
+    if(daycount < days+(is_leap(year)?366:365))
+      break;
+    days+=is_leap(year)?366:365;
+    months+=12;
+    year++;
+  }
+  for(int i= 0; i < 12; i++){
+    if(days < daycount){
+      if(i==1)
+        days+=is_leap(year)?29:28;
+      else
+        days+=mdays[i];
+      months+=1;
+    }
+    else
+      break;
+  }
+  return months;
+}
+
+/*
+ * Utility functions to identify class and unit
+ */
+
 Rboolean isClass(const char *class_, SEXP s) {
   SEXP klass;
   int i;
@@ -220,10 +255,20 @@ ZK from_date_robject(SEXP sxp) {
   int type= TYPEOF(sxp);
   switch(type) {
     case INTSXP:
-      DO(length,kI(x)[i]=INTEGER(sxp)[i]-kdbDateOffset);
+      if(isClass("month", sxp)){
+        DO(length,kI(x)[i]=days2months(INTEGER(sxp)[i]-kdbDateOffset));
+      }
+      else{
+        DO(length,kI(x)[i]=INTEGER(sxp)[i]-kdbDateOffset);
+      }
       break;
     default:
-      DO(length,kI(x)[i]=ISNA(REAL(sxp)[i])?NA_INTEGER:(I)REAL(sxp)[i]-kdbDateOffset);
+      if(isClass("month", sxp)){
+        DO(length,kI(x)[i]=ISNA(REAL(sxp)[i])?NA_INTEGER:days2months((I)REAL(sxp)[i]-kdbDateOffset));
+      }
+      else{
+        DO(length,kI(x)[i]=ISNA(REAL(sxp)[i])?NA_INTEGER:(I)REAL(sxp)[i]-kdbDateOffset);
+      }
   }
   return x;
 }
@@ -298,8 +343,6 @@ ZK from_difftime_robject(SEXP sxp){
     return from_second_or_minute_robject(sxp);
   else if(isUnit("days", sxp))
     return from_days_robject(sxp);
-  else if(isUnit("timespan", sxp))
-    return from_double_robject(sxp);
   else /* hours */
     return from_nyi_robject(sxp);
 }
@@ -408,7 +451,7 @@ ZK from_double_robject(SEXP sxp){
   if (isNull(dim)) {
     //Process values
     nano = isClass("nanotime",sxp);
-    span = isClass("difftime", sxp) && isUnit("timespan", sxp);
+    span = isClass("timespan",sxp);
     if(nano || span || bit64) {
       x=ktn(nano?KP:(span?KN:KJ),len);
       DO(len,kJ(x)[i]=INT64(sxp)[i])
@@ -423,8 +466,8 @@ ZK from_double_robject(SEXP sxp){
       return atom_value_dict(len, x, keyNames);
     else if(nano || span || bit64)
       return x;
-  //Normal kdb+ list
-  return attR(x, sxp);  
+    //Normal kdb+ list
+    return attR(x, sxp);  
   }
   if(bit64)
     x= klonga(len, length(dim), INTEGER(dim), (J*)REAL(sxp));

@@ -7,6 +7,7 @@
 #include <Rdefines.h>
 #include <Rembedded.h>
 #include <time.h>
+#include <stdbool.h>
 #ifndef WIN32
 #include <Rinterface.h>
 #include <pthread.h>

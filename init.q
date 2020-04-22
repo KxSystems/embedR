@@ -33,3 +33,6 @@ Roff    :.rk.off
 Rset    :.rk.set  
 
 setenv[`R_HOME;first @[system;@[.z.o like "w*";"call";"env"]," R RHOME";enlist""]]
+
+// Some time conversion from R -> q do not work without doing .rk.set first.
+("kdbtimestamp_"; "kdbtimespan_"; "kdbdate_"; "kdbmonth_"; "kdbminute_"; "kdbsecond_") .rk.set' `timestamp`timespan`date`month`minute`second$/: 2000.01.01D00:00:00.000000000;

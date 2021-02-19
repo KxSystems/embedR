@@ -8,13 +8,11 @@ See <https://code.kx.com/v2/interfaces/with-r/#calling-r-from-q>
 
 Download the appropriate release archive from [releases](../../releases/latest) page. 
 
-#### Unpack and install content of the archive
+- Linux/Mac
 
-environment     | action
-----------------|---------------------------------------------------------------------------------------
-Linux           | `tar xzvf embedr_linux-v*.tar.gz -C $QHOME --strip 1`
-macOS           | `tar xzvf embedr_osx-v*.tar.gz -C $QHOME --strip 1`
-Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively.
+      $ install.sh
+
+- Windows: Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively.
 
 ### Install from Source
 

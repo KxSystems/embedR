@@ -9,7 +9,22 @@
  * https://cran.r-project.org/doc/manuals/r-release/R-exts.html
  */
 
+/*-----------------------------------------------*/
+/*                Load Libraries                 */
+/*-----------------------------------------------*/
+
+#include "common.h"
+//#include "q2r.h"
+
+/*-----------------------------------------------*/
+/*                Global Variable                */
+/*-----------------------------------------------*/
+
 int kx_connection=0;
+
+/*-----------------------------------------------*/
+/*                    Structs                    */
+/*-----------------------------------------------*/
 
 /*
  * A (readable type name, R data type number) pair.
@@ -48,6 +63,65 @@ const struct data_types r_data_types[] = {
   {0, -1}
 };
 
+/*-----------------------------------------------*/
+/*           Predefinition of Functions          */
+/*-----------------------------------------------*/
+
+/**
+ *@brief Function used in the conversion of kdb guid to R char array
+ */
+static K guid_2_char(K x);
+
+/*
+ * We have functions that turn any K object into the appropriate R SEXP.
+ */
+SEXP from_any_kobject(K x);
+static SEXP from_bool_kobject(K);
+static SEXP from_byte_kobject(K);
+static SEXP from_guid_kobject(K);
+static SEXP from_string_column_kobject(K);
+static SEXP from_short_kobject(K);
+static SEXP from_int_kobject(K);
+static SEXP from_long_kobject(K);
+static SEXP from_real_kobject(K);
+static SEXP from_float_kobject(K);
+SEXP from_string_kobject(K);
+SEXP from_symbol_kobject(K);
+static SEXP from_timestamp_kobject(K);
+static SEXP from_month_kobject(K);
+static SEXP from_date_kobject(K);
+static SEXP from_datetime_kobject(K);
+static SEXP from_timespan_kobject(K);
+static SEXP from_minute_kobject(K);
+static SEXP from_second_kobject(K);
+static SEXP from_time_kobject(K);
+static SEXP from_columns_kobject(K);
+static SEXP from_table_kobject(K);
+static SEXP from_dictionary_kobject(K);
+static SEXP from_columns_kobject(K x);
+static SEXP error_broken_kobject(K broken);
+static SEXP from_list_of_kobjects(K x);
+
+/*
+ * An array of functions that deal with kdbplus data types. Note that the order
+ * is very important as we index it based on the kdb+ type number in the K object.
+ */
+typedef SEXP(*conversion_function)(K);
+
+conversion_function kdbplus_types[] = {
+  from_list_of_kobjects,  from_bool_kobject,     from_guid_kobject,
+  error_broken_kobject,   from_byte_kobject,     from_short_kobject,
+  from_int_kobject,       from_long_kobject,     from_real_kobject,
+  from_float_kobject,    from_string_kobject,   from_symbol_kobject,
+  from_timestamp_kobject, from_month_kobject,    from_date_kobject,
+  from_datetime_kobject,  from_timespan_kobject, from_minute_kobject,
+  from_second_kobject,    from_time_kobject
+};
+
+/*-----------------------------------------------*/
+/*                   Functions                   */
+/*-----------------------------------------------*/
+
 /*
  * Brute force search of R type table.
  * eg. 	get_type_name(LISTSXP)
@@ -60,8 +134,8 @@ char* get_type_name(Sint type) {
   return r_data_types[0].name;
 }
 
-/*
- * Make a data.frame from a named list by adding row.names, and class
+/**
+ *@brief Make a data.frame from a named list by adding row.names, and class
  * attribute. Uses "1", "2", .. as row.names.
  */
 void make_data_frame(SEXP data) {
@@ -101,9 +175,6 @@ static SEXP settimestampclass(SEXP sxp) {
   UNPROTECT(3);
   return asS4(sxp,TRUE,0);
 }
-
-static SEXP R_UnitsSymbol = NULL;
-static SEXP R_TzSymbol = NULL;
 
 /* for timespan, minute, second */
 //Available units: "secs", "mins", "hours", "days", "weeks"
@@ -161,84 +232,9 @@ static SEXP settimespanclass(SEXP sxp) {
 }
 
 /*
- * We have functions that turn any K object into the appropriate R SEXP.
- */
-static SEXP from_any_kobject(K object);
-static SEXP error_broken_kobject(K);
-static SEXP from_list_of_kobjects(K);
-static SEXP from_bool_kobject(K);
-static SEXP from_byte_kobject(K);
-static SEXP from_guid_kobject(K);
-static SEXP from_string_kobject(K);
-static SEXP from_string_column_kobject(K);
-static SEXP from_short_kobject(K);
-static SEXP from_int_kobject(K);
-static SEXP from_long_kobject(K);
-static SEXP from_float_kobject(K);
-static SEXP from_double_kobject(K);
-static SEXP from_symbol_kobject(K);
-static SEXP from_month_kobject(K);
-static SEXP from_date_kobject(K);
-static SEXP from_datetime_kobject(K);
-static SEXP from_minute_kobject(K);
-static SEXP from_second_kobject(K);
-static SEXP from_time_kobject(K);
-static SEXP from_timespan_kobject(K);
-static SEXP from_timestamp_kobject(K);
-static SEXP from_columns_kobject(K);
-static SEXP from_dictionary_kobject(K);
-static SEXP from_table_kobject(K);
-
-/*
- * Function used in the conversion of kdb guid to R char array
- */
-static K guid_2_char(K);
-
-/*
- * Functions to derive day count since kdb+ epoch from month count
- */
-
-bool is_leap(const int year){
-  return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-}
-
-int months2days(const int monthcount){
-  int days=0;
-  const int mdays[12]={31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-  const int years = monthcount / 12;
-  for(int i= 0; i < years; i++)
-    days+=is_leap(2000+i)?366:365;
-  const int this_year = 2000+years;
-  const int months= monthcount % 12;
-  for(int i=0; i < months; i++){
-    if(i == 1)
-      days+=is_leap(this_year)?29:28;
-    else
-      days+=mdays[i];
-  }
-  return days;
-}
-
-/*
- * An array of functions that deal with kdbplus data types. Note that the order
- * is very important as we index it based on the kdb+ type number in the K object.
- */
-typedef SEXP(*conversion_function)(K);
-
-conversion_function kdbplus_types[] = {
-  from_list_of_kobjects,  from_bool_kobject,     from_guid_kobject,
-  error_broken_kobject,   from_byte_kobject,     from_short_kobject,
-  from_int_kobject,       from_long_kobject,     from_float_kobject,
-  from_double_kobject,    from_string_kobject,   from_symbol_kobject,
-  from_timestamp_kobject, from_month_kobject,    from_date_kobject,
-  from_datetime_kobject,  from_timespan_kobject, from_minute_kobject,
-  from_second_kobject,    from_time_kobject
-};
-
-/*
  * Convert K object to R object
  */
-static SEXP from_any_kobject(K x) {
+SEXP from_any_kobject(K x) {
   SEXP result;
   int type = abs(x->t);
   if (XT == type)
@@ -411,7 +407,7 @@ static SEXP from_long_kobject(K x) {
   return result;
 }
 
-static SEXP from_float_kobject(K x) {
+static SEXP from_real_kobject(K x) {
   SEXP result;
   if(scalar(x)) return ScalarReal(ISNAN(x->e)?R_NaN:x->e);
   PROTECT(result= allocVector(REALSXP,x->n));
@@ -421,7 +417,7 @@ static SEXP from_float_kobject(K x) {
   return result;
 }
 
-static SEXP from_double_kobject(K x) {
+static SEXP from_float_kobject(K x) {
   SEXP result;
   if(scalar(x)) return ScalarReal(ISNAN(x->f)?R_NaN:x->f);
   PROTECT(result= allocVector(REALSXP,x->n));
@@ -431,7 +427,7 @@ static SEXP from_double_kobject(K x) {
   return result;
 }
 
-static SEXP from_string_kobject(K x) {
+SEXP from_string_kobject(K x) {
   SEXP result;
   long n=scalar(x)?1:x->n;
   PROTECT(result= allocVector(STRSXP,1));
@@ -453,12 +449,23 @@ static SEXP from_string_column_kobject(K x) {
   return result;
 }
 
-static SEXP from_symbol_kobject(K x) {
+SEXP from_symbol_kobject(K x) {
   SEXP result;
   if(scalar(x)) return mkString(x->s);
   PROTECT(result= allocVector(STRSXP,x->n));
   for(int i= 0; i < x->n; i++)
     SET_STRING_ELT(result, i, mkChar(kS(x)[i]));
+  UNPROTECT(1);
+  return result;
+}
+
+static SEXP from_timestamp_kobject(K x) {
+  SEXP result=from_long_kobject(x);
+  long n=XLENGTH(result);
+  PROTECT(result);
+  for(int i= 0; i < n; i++)
+    if(INT64(result)[i]!=nj)INT64(result)[i]+=epoch_offset;
+  settimestampclass(result);
   UNPROTECT(1);
   return result;
 }
@@ -484,31 +491,13 @@ static SEXP from_date_kobject(K x) {
 }
 
 static SEXP from_datetime_kobject(K x) {
-  SEXP result=PROTECT(from_double_kobject(x));
+  SEXP result=PROTECT(from_float_kobject(x));
   for(int i= 0; i < XLENGTH(result); i++)
     REAL(result)[i]= REAL(result)[i]* sec2day + kdbDateOffset * sec2day;
   setdatetimeclass(result);
   settimezone(result,"GMT");
   UNPROTECT(1);
   return result;
-}
-
-static SEXP from_minute_kobject(K x) { 
-  SEXP result=PROTECT(from_int_kobject(x));
-  setdifftimeclass(result,"mins");
-  UNPROTECT(1); 
-  return result; 
-}
-
-static SEXP from_second_kobject(K x) { 
-  SEXP result=PROTECT(from_int_kobject(x));
-  setdifftimeclass(result,"secs");
-  UNPROTECT(1); 
-  return result;
-}
-
-static SEXP from_time_kobject(K x) {
-  return from_int_kobject(x);
 }
 
 static SEXP from_timespan_kobject(K x) {
@@ -540,14 +529,31 @@ static SEXP from_timespan_kobject(K x) {
   }
 }
 
-static SEXP from_timestamp_kobject(K x) {
-  SEXP result=from_long_kobject(x);
-  long n=XLENGTH(result);
-  PROTECT(result);
-  for(int i= 0; i < n; i++)
-    if(INT64(result)[i]!=nj)INT64(result)[i]+=epoch_offset;
-  settimestampclass(result);
-  UNPROTECT(1);
+static SEXP from_minute_kobject(K x) { 
+  SEXP result=PROTECT(from_int_kobject(x));
+  setdifftimeclass(result,"mins");
+  UNPROTECT(1); 
+  return result; 
+}
+
+static SEXP from_second_kobject(K x) { 
+  SEXP result=PROTECT(from_int_kobject(x));
+  setdifftimeclass(result,"secs");
+  UNPROTECT(1); 
+  return result;
+}
+
+static SEXP from_time_kobject(K x) {
+  return from_int_kobject(x);
+}
+
+static SEXP from_table_kobject(K x) {
+  SEXP names, result;
+  PROTECT(names = from_any_kobject(kK(x->k)[0]));
+  PROTECT(result = from_columns_kobject(kK(x->k)[1]));
+  setAttrib(result, R_NamesSymbol, names);
+  UNPROTECT(2);
+  make_data_frame(result);
   return result;
 }
 
@@ -570,16 +576,6 @@ static SEXP from_dictionary_kobject(K x) {
   PROTECT(result = from_any_kobject(v));
   setAttrib(result, R_NamesSymbol, names);
   UNPROTECT(2);
-  return result;
-}
-
-static SEXP from_table_kobject(K x) {
-  SEXP names, result;
-  PROTECT(names = from_any_kobject(kK(x->k)[0]));
-  PROTECT(result = from_columns_kobject(kK(x->k)[1]));
-  setAttrib(result, R_NamesSymbol, names);
-  UNPROTECT(2);
-  make_data_frame(result);
   return result;
 }
 

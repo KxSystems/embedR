@@ -10,23 +10,25 @@ file(DOWNLOAD "https://github.com/KxSystems/kdb/raw/master/c/c/k.h" "${PROJECT_S
 
 # Specify target shared library name
 add_library(${MY_LIBRARY_NAME} SHARED
+    common_R_interface/common.c
     common_R_interface/q2r.c
     common_R_interface/r2q.c
-    q2r_ex.c
-    r2q_ex.c
+    embedr_q2r.c
+    embedr_r2q.c
     socketpair.c
 )
 
 # Specify include directory
 target_include_directories(${MY_LIBRARY_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/common_R_interface
     $ENV{R_INSTALL_DIR}/include/
 )
 
 # Find dependency
 find_library(R_LIBRARY
     REQUIRED
-    NAMES libR
+    NAMES libR R
     HINTS $ENV{R_INSTALL_DIR}/lib
 )
 
@@ -43,7 +45,7 @@ target_compile_options(${MY_LIBRARY_NAME} PRIVATE
 
     # Compiler option
     $<$<C_COMPILER_ID:MSVC>:${CMAKE_C_FLAGS} /W3 /D WIN32_LEAN_AND_MEAN>
-    $<$<NOT:$<C_COMPILER_ID:MSVC>>:${CMAKE_C_FLAGS} -std=c99 -fPIC -Wno-strict-aliasing>
+    $<$<NOT:$<C_COMPILER_ID:MSVC>>:${CMAKE_C_FLAGS} -fPIC -Wno-strict-aliasing>
 
     # Config option
     $<$<AND:$<CONFIG:Release>,$<NOT:$<C_COMPILER_ID:MSVC>>>:-O3 -DNDEBUG>
@@ -68,8 +70,7 @@ endif()
 # Link library
 target_link_libraries(${MY_LIBRARY_NAME} PRIVATE
     ${Q_LIBRARY}
-    ${KAFKA_LIBRARY}
-    ${OPENSSL_LIBRARY}
+    ${R_LIBRARY}
 )
 
 ##%% Installation %%##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv/

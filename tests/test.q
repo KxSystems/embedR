@@ -29,7 +29,7 @@ EQUAL:{[id;x;y]
 //%% System Setting %%//vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv/
 
 //Load embedR file
-\l ../init.q
+\l q/embedr.q
 
 //Set seed 42
 \S 42
@@ -103,7 +103,6 @@ show .rk.get "wilcox.test(c(1,2,3),c(4,5,6))"
 .rk.exec "data(OrchardSprays)"
 show .rk.get "OrchardSprays"
 
-
 // to install package in non-interactive way
 // install.packages("zoo", repos="http://cran.r-project.org")
 .rk.get"install.packages"
@@ -122,12 +121,12 @@ EQUAL[28; .rk.get each ("cos";".C";"floor";"Im";"cumsum";"nargs";"proc.time";"di
 EQUAL[29; .rk.get"as.raw(10)"; (), 0x0a];
 EQUAL[30; .rk.get"as.logical(c(1,FALSE,NA))"; 100b];
 
-PROGRESS["Onject Test Finished!!"];
+PROGRESS["Object Test Finished!!"];
 
 //Table//-----------------------------------/
 
 // data.frame
-EQUAL[31; .rk.get"data.frame(a=1:3, b=c('a','b','c'))"; flip `a`b!(1 2 3i;`a`b`c)];
+EQUAL[31; .rk.get"data.frame(a=1:3, b=c('a','b','c'),stringsAsFactors=TRUE)"; flip `a`b!(1 2 3i;`a`b`c)];
 EQUAL[32; .rk.get"data.frame(a=1:3, b=c('a','b','c'),stringsAsFactors=FALSE)"; flip `a`b!(1 2 3i;1#/:("a";"b";"c"))];
 EQUAL[33; .rk.get"data.frame(a=1:3)"; flip enlist[`a]!enlist (1 2 3i)];
 EQUAL[34; .rk.get"data.frame()"; ()];
@@ -145,7 +144,17 @@ EQUAL[37; .rk.get"dictB"; `a`b`c!101b];
 .rk.set["dictP"; `a`b`c!(2020.04.13D06:08:03.712336000; 2020.04.13D06:08:03.712336001; 2020.04.13D06:08:03.712336002)];
 EQUAL[38; .rk.get"dictP"; `a`b`c!(2020.04.13D06:08:03.712336000; 2020.04.13D06:08:03.712336001; 2020.04.13D06:08:03.712336002)];
 
+PROGRESS["Dictionary Test Finished!!"];
+
 //Time//------------------------------------/
+
+// timestamp
+.rk.set["tmstp"; 2020.03.16D17:30:45.123456789];
+EQUAL[47; .rk.get"tmstp"; (), 2020.03.16D17:30:45.123456789];
+
+// month
+.rk.set["mnth"; `month$/:2020.04.02 2010.01.29]
+EQUAL[54; .rk.get"mnth"; 2020.04 2010.01m];
 
 // dates
 EQUAL[39; .rk.get"as.Date('2005-12-31')"; (), 2005.12.31];
@@ -161,32 +170,32 @@ EQUAL[45; .rk.get"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:
 .rk.set["dttm"; 2018.02.18T04:00:01.000z];
 EQUAL[46; .rk.get"dttm"; (), 2018.02.18T04:00:01.000z];
 
-// timestamp
-.rk.set["tmstp"; 2020.03.16D17:30:45.123456789];
-EQUAL[47; .rk.get"tmstp"; (), 2020.03.16D17:30:45.123456789];
-
-// second
-.rk.set["scnd"; `second$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
-EQUAL[48; .rk.get"scnd"; 12:00:30 12:30:45];
-EQUAL[49; .rk.get"as.difftime(c(1, 2), units=\"mins\")"; 00:01 00:02];
-
-// minute
-.rk.set["mnt"; `minute$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
-EQUAL[50; .rk.get "mnt"; 12:00 12:30];
-EQUAL[51; .rk.get"as.difftime(c(1, 2), units=\"secs\")"; 00:00:01 00:00:02];
+-1 "AAAA";
 
 // days
 .rk.set["days"; 1D 2D];
 EQUAL[52; .rk.get"days"; 1D 2D];
 EQUAL[53; .rk.get"as.difftime(c(1, 2), units=\"days\")"; 1D 2D];
 
-// month
-.rk.set["mnth"; `month$/:2020.04.02 2010.01.29]
-EQUAL[54; .rk.get"mnth"; 2020.04 2010.01m];
+-1 "VVV";
 
 // timespan
 .rk.set["tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012]
 EQUAL[55; .rk.get"tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012];
+
+-1 "AAAA";
+
+// minute
+.rk.set["mnt"; `minute$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
+EQUAL[50; .rk.get "mnt"; 12:00 12:30];
+EQUAL[51; .rk.get"as.difftime(c(1, 2), units=\"mins\")"; 00:01 00:02];
+
+-1 "AAAA";
+
+// second
+.rk.set["scnd"; `second$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
+EQUAL[48; .rk.get"scnd"; 12:00:30 12:30:45];
+EQUAL[49; .rk.get"as.difftime(c(1, 2), units=\"secs\")"; 00:00:01 00:00:02];
 
 PROGRESS["Time Test Finished!!"];
 
@@ -249,7 +258,7 @@ EQUAL[74; .rk.get`b; flip enlist[`a]!enlist (1 2f)];
 .rk.get`inspect
 .rk.get"substitute(log(1))"
 
-EQUAL[75; flip[`a`b!(`1`2`1;`a`b`b)]; .rk.get"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
+EQUAL[75; flip[`a`b!(`1`2`1;`a`b`b)]; .rk.get"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"),stringsAsFactors=TRUE)"];
 EQUAL[76; flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
 EQUAL[77; flip[`a`b!(`1`2`1;`10`20`30)]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"];
 

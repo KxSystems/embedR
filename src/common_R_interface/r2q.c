@@ -9,72 +9,52 @@
  * https://cran.r-project.org/doc/manuals/r-release/R-exts.html
  */
 
-ZK klogicv(J len, int *val);
-ZK klogica(J len, int rank, int *shape, int *val);
-ZK kintv(J len, int *val);
-ZK kinta(J len, int rank, int *shape, int *val);
-ZK klonga(J len, int rank, int *shape, J*val);
-ZK kdoublev(J len, double *val);
-ZK kdoublea(J len, int rank, int *shape, double *val);
-ZK atom_value_dict(J len, K v, SEXP keys);
+/*-----------------------------------------------*/
+/*                Load Libraries                 */
+/*-----------------------------------------------*/
+
+#include "common.h"
+
+/*-----------------------------------------------*/
+/*           Predefinition of Functions          */
+/*-----------------------------------------------*/
+
+/*
+ * Conversion utility.
+ */
+static K klogicv(J len, int *val);
+static K klogica(J len, int rank, int *shape, int *val);
+static K kintv(J len, int *val);
+static K kinta(J len, int rank, int *shape, int *val);
+static K klonga(J len, int rank, int *shape, J*val);
+static K kdoublev(J len, double *val);
+static K kdoublea(J len, int rank, int *shape, double *val);
 
 /*
  * convert R SEXP into K object.
  */
-ZK from_any_robject(SEXP);
-ZK error_broken_robject(SEXP);
-ZK from_null_robject(SEXP);
-ZK from_symbol_robject(SEXP);
-ZK from_pairlist_robject(SEXP);
-ZK from_closure_robject(SEXP);
-ZK from_language_robject(SEXP);
-ZK from_date_robject(SEXP);
-ZK from_datetime_robject(SEXP);
-ZK from_datetime_ct_robject(SEXP);
-ZK from_datetime_lt_robject(SEXP);
-ZK from_difftime_robject(SEXP);
-ZK from_second_or_minute_robject(SEXP);
-ZK from_days_robject(SEXP);
-ZK from_char_robject(SEXP);
-ZK from_logical_robject(SEXP);
-ZK from_integer_robject(SEXP);
-ZK from_double_robject(SEXP);
-ZK from_character_robject(SEXP);
-ZK from_vector_robject(SEXP);
-ZK from_raw_robject(SEXP);
-ZK from_nyi_robject(SEXP);
-ZK from_frame_robject(SEXP);
-ZK from_factor_robject(SEXP);
+static K error_broken_robject(SEXP);
+static K from_logical_robject(SEXP);
+static K from_integer_robject(SEXP);
+static K from_double_robject(SEXP);
+static K from_char_robject(SEXP);
+static K from_symbol_robject(SEXP);
+static K from_date_robject(SEXP);
+static K from_datetime_robject(SEXP);
+static K from_difftime_robject(SEXP);
+static K from_null_robject(SEXP);
+static K from_character_robject(SEXP);
+static K from_vector_robject(SEXP);
+static K from_raw_robject(SEXP);
+static K from_nyi_robject(SEXP);
+static K from_frame_robject(SEXP);
+static K from_factor_robject(SEXP);
+static K from_closure_robject(SEXP);
+static K from_language_robject(SEXP);
 
-/*
- * Functions to derive month count since kdb epoch from day count
- */
-
-extern bool is_leap(const int year);
-
-int days2months(const int daycount){
-  int year=2000, months=0, days=0;
-  const int mdays[12]={31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-  while(true){
-    if(daycount < days+(is_leap(year)?366:365))
-      break;
-    days+=is_leap(year)?366:365;
-    months+=12;
-    year++;
-  }
-  for(int i= 0; i < 12; i++){
-    if(days < daycount){
-      if(i==1)
-        days+=is_leap(year)?29:28;
-      else
-        days+=mdays[i];
-      months+=1;
-    }
-    else
-      break;
-  }
-  return months;
-}
+/*-----------------------------------------------*/
+/*                   Functions                   */
+/*-----------------------------------------------*/
 
 /*
  * Utility functions to identify class and unit
@@ -104,24 +84,29 @@ Rboolean isUnit(const char *units_, SEXP s){
  * Utility functions to handle attribute
  */
 
-//extern ZK from_pairlist_robject(SEXP sxp);
-
-/* add attribute */
-ZK addattR (K x,SEXP att) {
+/**
+ * @brief add attribute
+ **/
+static K addattR (K x,SEXP att) {
   // attrs are pairlists: LISTSXP
   K u = from_pairlist_robject(att);
   return knk(2,u,x);
 }
 
-/* add attribute if any */
-ZK attR(K x,SEXP sxp) {
+/**
+ * @brief add attribute if any
+ **/
+K attR(K x,SEXP sxp) {
   SEXP att = ATTRIB(sxp);
   if (isNull(att))
     return x;
   return addattR(x,att);
 }
 
-ZK atom_value_dict(J len, K v, SEXP keys){
+/**
+ * @brief Build atom value dictionary.
+ */
+static K atom_value_dict(J len, K v, SEXP keys){
   K k= ktn(KS, len);
   for(J i= 0; i < len; i++) {
     const char *keyName= CHAR(STRING_ELT(keys, i));
@@ -131,10 +116,10 @@ ZK atom_value_dict(J len, K v, SEXP keys){
 }
 
 /*
- * Conversopn from R to Q
+ * Conversion from R to Q
  */
 
- ZK from_any_robject(SEXP sxp){
+K from_any_robject(SEXP sxp){
   if(isClass("data.frame", sxp))
     return from_frame_robject(sxp);
   if(isClass("factor", sxp))
@@ -209,15 +194,15 @@ ZK atom_value_dict(J len, K v, SEXP keys){
   return result;
 }
 
-ZK error_broken_robject(SEXP sxp) {
+static K error_broken_robject(SEXP sxp) {
   return krr("Broken R object.");
 }
 
-ZK from_nyi_robject(SEXP sxp){
+static K from_nyi_robject(SEXP sxp){
   return attR(kp((S)Rf_type2char(TYPEOF(sxp))),sxp);
 }
 
-ZK from_frame_robject(SEXP sxp) {
+static K from_frame_robject(SEXP sxp) {
   J length= XLENGTH(sxp);
   if(length == 0)
     return from_null_robject(sxp);
@@ -232,7 +217,7 @@ ZK from_frame_robject(SEXP sxp) {
   return tbl;
 }
 
-ZK from_factor_robject(SEXP sxp) {
+static K from_factor_robject(SEXP sxp) {
   J length= XLENGTH(sxp);
   SEXP levels= asCharacterFactor(sxp);
   K x= ktn(KS, length);
@@ -243,14 +228,14 @@ ZK from_factor_robject(SEXP sxp) {
   return x;
 }
 
-ZK from_raw_robject(SEXP sxp) {
+static K from_raw_robject(SEXP sxp) {
   K x = ktn(KG,XLENGTH(sxp));
   DO(xn,kG(x)[i]=RAW(sxp)[i])
   return x;
 }
 
 
-ZK from_date_robject(SEXP sxp) {
+static K from_date_robject(SEXP sxp) {
   K x;
   J length= XLENGTH(sxp);
   x= ktn(isClass("month", sxp)?KM:KD,length);
@@ -275,7 +260,7 @@ ZK from_date_robject(SEXP sxp) {
   return x;
 }
 
-ZK from_datetime_ct_robject(SEXP sxp) {
+static K from_datetime_ct_robject(SEXP sxp) {
   K x;
   J length = XLENGTH(sxp);
   x = ktn(KZ,length);
@@ -283,7 +268,7 @@ ZK from_datetime_ct_robject(SEXP sxp) {
   return x;
 }
 
-ZK from_datetime_lt_robject(SEXP sxp) {
+static K from_datetime_lt_robject(SEXP sxp) {
   K x;
   J i, key_length= XLENGTH(sxp);
   x= ktn(0, key_length);
@@ -309,14 +294,14 @@ ZK from_datetime_lt_robject(SEXP sxp) {
 }
 
 //Wraper function of POSIXt
-ZK from_datetime_robject(SEXP sxp) {
+static K from_datetime_robject(SEXP sxp) {
   if(isClass("POSIXct", sxp))
     return from_datetime_ct_robject(sxp);
   else
     return from_datetime_lt_robject(sxp);
 }
 
-ZK from_second_or_minute_robject(SEXP sxp){
+static K from_second_or_minute_robject(SEXP sxp){
   K x;
   J length=XLENGTH(sxp);
   x=ktn(isUnit("secs", sxp)?KV:KU, length);
@@ -331,7 +316,8 @@ ZK from_second_or_minute_robject(SEXP sxp){
   return x;
 }
 
-ZK from_days_robject(SEXP sxp){
+static K from_days_robject(SEXP sxp){
+  printf("HOOO\n");
   K x;
   J length= XLENGTH(sxp);
   x= ktn(KN,length);
@@ -340,36 +326,42 @@ ZK from_days_robject(SEXP sxp){
 }
 
 /* Wrapper function of difftime */
-ZK from_difftime_robject(SEXP sxp){
-  if(isUnit("secs", sxp) || isUnit("mins", sxp))
+static K from_difftime_robject(SEXP sxp){
+  if(isUnit("secs", sxp) || isUnit("mins", sxp)){
+    // secs or mins
     return from_second_or_minute_robject(sxp);
-  else if(isUnit("days", sxp))
+  }    
+  else if(isUnit("days", sxp)){
+    // days
     return from_days_robject(sxp);
-  else /* hours */
+  }    
+  else{
+    // hours
     return from_nyi_robject(sxp);
+  }   
 }
 
 /*
  * NULL in R(R_NilValue): often used as generic zero length vector
  * NULL objects cannot have attributes and attempting to assign one by attr gives an error
  */
-ZK from_null_robject(SEXP sxp) {
+static K from_null_robject(SEXP sxp) {
   return knk(0);
 }
 
-ZK from_symbol_robject(SEXP sxp) {
+static K from_symbol_robject(SEXP sxp) {
   const char* t = CHAR(PRINTNAME(sxp));
   K x = ks((S)t);
   return attR(x,sxp);
 }
 
-ZK from_closure_robject(SEXP sxp) {
+static K from_closure_robject(SEXP sxp) {
   K x = from_any_robject(FORMALS(sxp));
   K y = from_any_robject(BODY(sxp));
   return attR(knk(2,x,y),sxp);
 }
 
-ZK from_language_robject(SEXP sxp) {
+static K from_language_robject(SEXP sxp) {
   K x = knk(0);
   SEXP s = sxp;
   while (0 < length(s)) {
@@ -379,12 +371,12 @@ ZK from_language_robject(SEXP sxp) {
   return attR(x,sxp);
 }
 
-ZK from_char_robject(SEXP sxp) {
+static K from_char_robject(SEXP sxp) {
   K x = kpn((S)CHAR(STRING_ELT(sxp,0)),LENGTH(sxp));
   return attR(x,sxp);
 }
 
-ZK from_logical_robject(SEXP sxp) {
+static K from_logical_robject(SEXP sxp) {
   K x;
   J len = XLENGTH(sxp);
   SEXP dim= getAttrib(sxp, R_DimSymbol);
@@ -410,7 +402,7 @@ ZK from_logical_robject(SEXP sxp) {
   return x;
 }
 
-ZK from_integer_robject(SEXP sxp) {
+static K from_integer_robject(SEXP sxp) {
   K x;
   J len = XLENGTH(sxp);
   SEXP dim= getAttrib(sxp, R_DimSymbol);
@@ -436,7 +428,7 @@ ZK from_integer_robject(SEXP sxp) {
   return x;
 }
 
-ZK from_double_robject(SEXP sxp){
+static K from_double_robject(SEXP sxp){
   K x;
   I nano, span, bit64=isClass("integer64",sxp);
   J len = XLENGTH(sxp);
@@ -479,7 +471,7 @@ ZK from_double_robject(SEXP sxp){
   return x;
 }
 
-ZK from_character_robject(SEXP sxp) {
+static K from_character_robject(SEXP sxp) {
   K x;
   J i, length = XLENGTH(sxp);
   if (length == 1)
@@ -492,7 +484,7 @@ ZK from_character_robject(SEXP sxp) {
   return attR(x,sxp);
 }
 
-ZK from_vector_robject(SEXP sxp) {
+static K from_vector_robject(SEXP sxp) {
   J i, length = LENGTH(sxp);
   K x = ktn(0, length);
   for (i = 0; i < length; i++)
@@ -514,13 +506,13 @@ ZK from_vector_robject(SEXP sxp) {
  * done for boolean, int, double
  */
 
-ZK klogicv(J len, int *val) {
+static K klogicv(J len, int *val) {
   K x= ktn(KB, len);
   DO(len, kG(x)[i]= (val)[i]);
   return x;
 }
 
-ZK klogica(J len, int rank, int *shape, int *val) {
+static K klogica(J len, int rank, int *shape, int *val) {
   K x, y;
   J i, j, r, c, k;
   switch(rank) {
@@ -549,13 +541,13 @@ ZK klogica(J len, int rank, int *shape, int *val) {
   return x;
 }
 
-ZK kintv(J len, int *val) {
+static K kintv(J len, int *val) {
   K x = ktn(KI, len);
   DO(len,kI(x)[i]=(val)[i]);
   return x;
 }
 
-ZK kinta(J len, int rank, int *shape, int *val) {
+static K kinta(J len, int rank, int *shape, int *val) {
   K x,y;
   J i,j,r,c,k;
   switch (rank) {
@@ -584,7 +576,7 @@ ZK kinta(J len, int rank, int *shape, int *val) {
   return x;
 }
 
-ZK klonga(J len, int rank, int *shape, J*val) {
+static K klonga(J len, int rank, int *shape, J*val) {
   K x, y;
   J i, j, r, c, k;
   switch(rank) {
@@ -614,13 +606,13 @@ ZK klonga(J len, int rank, int *shape, J*val) {
   return x;
 }
 
-ZK kdoublev(J len, double *val) {
+static K kdoublev(J len, double *val) {
   K x = ktn(KF, len);
   DO(len,kF(x)[i]=(val)[i]);
   return x;
 }
 
-ZK kdoublea(J len, int rank, int *shape, double *val) {
+static K kdoublea(J len, int rank, int *shape, double *val) {
   K x,y;
   J i,j,r,c,k;
   switch (rank) {

@@ -38,6 +38,9 @@
 # k.h
 include/k.h
 
+# Package
+build/
+
 # Debug files
 *.dSYM/
 *.su

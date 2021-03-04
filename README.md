@@ -4,32 +4,28 @@ See <https://code.kx.com/v2/interfaces/with-r/#calling-r-from-q>
 
 ## Installation
 
-### Download
+### Download Pre-built Binary
+
 Download the appropriate release archive from [releases](../../releases/latest) page. 
 
-#### Unpack and install content of the archive 
+#### Unpack and install content of the archive
 
 environment     | action
 ----------------|---------------------------------------------------------------------------------------
 Linux           | `tar xzvf embedr_linux-v*.tar.gz -C $QHOME --strip 1`
 macOS           | `tar xzvf embedr_osx-v*.tar.gz -C $QHOME --strip 1`
-Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively. 
+Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively.
 
-### Building
-For Linux/MacOS it is possible to build the library from source using the makefile provided. From the root of the directory:
+### Install from Source
+
+For Linux/MacOS it is possible to build the library from source using the CMake file provided. You need to set a directory which includes `lib` and `include` directories to an environmental variable `R_INSTALL_DIR`. Then from the root of the directory:
 
 ```bash
-// Create the `.so` binary
-$ make
 
-// Install into $QHOME
-$ make install
+embedR]$ mkdir build && cd build
+build]$ cmake ..
+build]$ cmake --build . --target install
 
-// Remove the binary from current directory
-$ make clean
-
-// Or in a single command
-$ make && make install && make clean
 ```
 
 ## Calling R
@@ -37,10 +33,12 @@ $ make && make install && make clean
 When calling R, you need to set `R_HOME`. This can be set as follows:
 
 ```bash
+
 # Linux/macOS
 export R_HOME=`R RHOME`
 # Windows
 for /f "delims=" %a in ('R RHOME') do @set R_HOME=%a
+
 ```
 
 The library has four main methods:

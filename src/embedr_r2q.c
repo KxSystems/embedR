@@ -3,7 +3,17 @@
 /*  Overview: Distinct code in embedR for R -> Q interface   */
 /*-----------------------------------------------------------*/
 
-#include "socketpair.c"
+/*-----------------------------------------------*/
+/*                Load Libraries                 */
+/*-----------------------------------------------*/
+
+#include "socketpair.h"
+#include "common.h"
+#include "embedr.h"
+
+/*-----------------------------------------------*/
+/*                List of Functions              */
+/*-----------------------------------------------*/
 
 /*
  * User interface
@@ -14,16 +24,24 @@ K rclose(K x);
 K rexec(K x);
 K rget(K x);
 K rset(K x,K y);
-ZK rcmd(int type,K x);
+static K rcmd(int type,K x);
+
+/*-----------------------------------------------*/
+/*                Global Variable                */
+/*-----------------------------------------------*/
 
 __thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
 __thread int RLOAD=0;
+
+/*-----------------------------------------------*/
+/*                  Functions                    */
+/*-----------------------------------------------*/
 
 /*
  * Conversion from R to Q
  */
 
-ZK from_pairlist_robject(SEXP sxp) {
+K from_pairlist_robject(SEXP sxp) {
   K x = ktn(0,2*length(sxp));
   SEXP s = sxp;J i;
   for(i=0;i<x->n;i+=2) {
@@ -72,7 +90,7 @@ void* pingthread;
 
 V* pingmain(V* v){
   while(1){
-    nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=1000000}, NULL);
+    nanosleep(&(struct timespec){.tv_sec=0, .tv_nsec=1000000}, NULL);
     send(spair[1], "M", 1, 0);
   }
 }

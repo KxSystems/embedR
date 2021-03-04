@@ -3,6 +3,17 @@
 /*  Overview: Distinct code in embedR for Q -> R interface   */
 /*-----------------------------------------------------------*/
 
+/*-----------------------------------------------*/
+/*                Load Libraries                 */
+/*-----------------------------------------------*/
+
+#include "common.h"
+#include "embedr.h"
+
+/*-----------------------------------------------*/
+/*                  Functions                    */
+/*-----------------------------------------------*/
+
 /*
  * Given the appropriate names, types, and lengths, create an R named list.
  */

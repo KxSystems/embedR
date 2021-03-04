@@ -35,6 +35,9 @@
 *.x86_64
 *.hex
 
+# k.h
+include/k.h
+
 # Debug files
 *.dSYM/
 *.su

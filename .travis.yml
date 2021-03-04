@@ -20,8 +20,7 @@ script:
 - echo "Packaged as embedr_$TRAVIS_OS_NAME-$TRAVIS_BRANCH.tar.gz"
 deploy:
   provider: releases
-  api_key:
-    secure: KFMpWB7nPE4j9pkCPnuZH6tHIFGDWjk/Vv4nHTZdqFVKjCcjlS58GyKmMHtLNG4AZF8rbfhMKGINh4Xu47aOonrGhcwi2rUu06tmmGX06msnmRzqWqCqouJN3rORJgd9dOQLrOPxullBkhfFpzDj0XX5eVqGyJEKj1GK8IAKiuaIeGSVFd+P3BTBLELxnhxJZ5xOoeyWvyX9KXIj+/ZYy21kYO8SaNpSSx4LNvJHjudzCmd+iG6ReDA8DBuTd5Mr4yno+E6JvQVcGBkphQjIvvGEgUnSCVJAxvwdhAkbH7ANyawPqb+zNCT+P0MzMcHccMnzkh6/Y7T2o1qkgsLQbI/Du0UwzZDm3UVuF+T1NwG/DIMJhW2e99L1z9uQiGOce0nd+KjG92Vh6UHosK6zdiJmyPl6YY4NViKQrAurvUi2xrd6JpK7rvnQPezs7xxiCqfjS0l0G2afzLU+PdFM08M4DfhPQD7E5wyrHy3BxhtaTKTq4rMSfiPtBMoCApOlmcsU+UP73E+kQHE7+DrI4kkgN+DGgZEQotK/zwC6UtT+AtTU2N+Qn3OJQytVMERPARuospNXuq8LM8sLQ/EgnD1DtwNafJnLVLTrU+doT2esdxW67mytJw0r0pRhjF34K7Oc1KSpBgqPzeZMQv2ET4+4c1p8v7Sdz0Hi2a2g8RE=
+  token: "$GITHUB_APIKEY"
   file_glob: true
   file: embedr_*.tar.gz
   skip_cleanup: true

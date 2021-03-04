@@ -62,7 +62,12 @@ static char * getkstring(K x) {
  * The public interface used from Q.
  */
 
-static I spair[2];
+#ifdef _WIN32
+static SOCKET spair[2];
+#else
+static int spair[2];
+#endif
+
 void* pingthread;
 
 V* pingmain(V* v){

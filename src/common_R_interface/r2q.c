@@ -317,7 +317,6 @@ static K from_second_or_minute_robject(SEXP sxp){
 }
 
 static K from_days_robject(SEXP sxp){
-  printf("HOOO\n");
   K x;
   J length= XLENGTH(sxp);
   x= ktn(KN,length);

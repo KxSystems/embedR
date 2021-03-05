@@ -16,7 +16,18 @@ Download the appropriate release archive from [releases](../../releases/latest) 
 
 ### Install from Source
 
-For Linux/MacOS it is possible to build the library from source using the CMake file provided. You need to set a directory which includes `lib` and `include` directories to an environmental variable `R_INSTALL_DIR`. Then from the root of the directory:
+For Linux/MacOS it is possible to build the library from source using the CMake file provided.
+
+For successful installation you need to set a path to `lib` directory on `R_LIBRARY_DIR` and a path to `include` directory on `R_INCLUDE_DIR` with following commands:
+
+```bash
+
+]$ export R_LIBRARY_DIR=$(R RHOME)/lib
+]$ export R_INCLUDE_DIR=$(R CMD config --cppflags | cut -c 3-)
+
+```
+
+Then execte the commands below at the root directory of this repository:
 
 ```bash
 
@@ -25,6 +36,8 @@ build]$ cmake ..
 build]$ cmake --build . --target install
 
 ```
+
+**Note:** `cmake --build . --config Release --target install` installs the required share object and q files to the `QHOME\[os]64` and `QHOME` directories respectively. If you do not wish to install these files directly, you can execute `cmake --build . --config Release` instead of `cmake --build . --config Release --target install` and move the files from their build location at `build/embedr`.
 
 ## Calling R
 

@@ -22,14 +22,14 @@ add_library(${MY_LIBRARY_NAME} SHARED
 target_include_directories(${MY_LIBRARY_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/common_R_interface
-    $ENV{R_INSTALL_DIR}/include/
+    $ENV{R_INCLUDE_DIR}
 )
 
 # Find dependency
 find_library(R_LIBRARY
     REQUIRED
     NAMES libR R
-    HINTS $ENV{R_INSTALL_DIR}/lib
+    HINTS $ENV{R_LIBRARY_DIR}
 )
 
 if(MSVC)

@@ -1,5 +1,16 @@
-/ test R server for Q
+/
+* test R server for Q.
+* # Note
+* - When testing on travis CI `.rk.install` should not be run; therefore commandline argument
+*  `test_data_frame` must be passed with its value `true`, e.g.,
+*  $ q tests/test.q -test_data_frame true
+* - `-s` flag must be passed to test limtation of main thread only. If `\s` is 0, Final test will be ignored.
+\
 
+//%% Commandline arguments %%//vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv/
+
+COMMANDLINE_ARGS: .Q.opt .z.x;
+if[`test_data_frame in key COMMANDLINE_ARGS; @[`COMMANDLINE_ARGS; `test_data_frame; {lower first x}]];
 
 //%% Define Test Function/Variable %%//vvvvvvvvvvvvvvvvvvvvvvvvv/
 
@@ -170,27 +181,19 @@ EQUAL[45; .rk.get"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:
 .rk.set["dttm"; 2018.02.18T04:00:01.000z];
 EQUAL[46; .rk.get"dttm"; (), 2018.02.18T04:00:01.000z];
 
--1 "AAAA";
-
 // days
 .rk.set["days"; 1D 2D];
 EQUAL[52; .rk.get"days"; 1D 2D];
 EQUAL[53; .rk.get"as.difftime(c(1, 2), units=\"days\")"; 1D 2D];
 
--1 "VVV";
-
 // timespan
 .rk.set["tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012]
 EQUAL[55; .rk.get"tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012];
-
--1 "AAAA";
 
 // minute
 .rk.set["mnt"; `minute$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
 EQUAL[50; .rk.get "mnt"; 12:00 12:30];
 EQUAL[51; .rk.get"as.difftime(c(1, 2), units=\"mins\")"; 00:01 00:02];
-
--1 "AAAA";
 
 // second
 .rk.set["scnd"; `second$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
@@ -243,12 +246,19 @@ PROGRESS["Q-Like R Command Test Finished!!"];
 // run gc
 .rk.get"gc()"
 
-//.rk.set["a";`sym?`a`b`c]
-//`:x set string 10?`4
-//.rk.set["a";get `:x]
-//hdel `:x;
+.rk.set["a";`sym?`a`b`c];
+`:x set string 10?`4;
+.rk.set["a";get `:x];
+hdel `:x;
+hdel `$":x#";
 
-.rk.install`data.table
+// Finish testing if `test_data_frame` is not "true".
+if[not "true" ~ COMMANDLINE_ARGS `test_data_frame;
+  PROGRESS["Completed!!"];
+  exit 0
+ ];
+
+.rk.install `data.table
 .rk.exec"library(data.table)"
 .rk.exec"a<-data.frame(a=c(1,2))"
 EQUAL[73; .rk.get`a; flip enlist[`a]!enlist (1 2f)];
@@ -262,5 +272,13 @@ EQUAL[75; flip[`a`b!(`1`2`1;`a`b`b)]; .rk.get"data.frame(a=as.factor(c(1,2,1)), 
 EQUAL[76; flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"];
 EQUAL[77; flip[`a`b!(`1`2`1;`10`20`30)]; .rk.get"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"];
 
+// Finish testing if slave thread is not used.
+if[0i ~ system "s";
+ PROGRESS["Completed!!"];
+ exit 0
+ ];
+
+EQUAL[78; all {.[.rk.set;("x"; x);"main thread only"~]} peach 2#enlist ([]1 2); 1b];
 PROGRESS["Completed!!"];
-// all {.[.rk.set;("x";0N!x);"main thread only"~]} peach 2#enlist ([]1 2)
+
+exit 0

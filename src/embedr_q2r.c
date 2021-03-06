@@ -7,8 +7,8 @@
 /*                Load Libraries                 */
 /*-----------------------------------------------*/
 
-#include "common.h"
 #include "embedr.h"
+#include "common.h"
 
 /*-----------------------------------------------*/
 /*                  Functions                    */

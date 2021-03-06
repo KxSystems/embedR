@@ -8,8 +8,8 @@
 /*-----------------------------------------------*/
 
 #include "socketpair.h"
-#include "common.h"
 #include "embedr.h"
+#include "common.h"
 
 /*-----------------------------------------------*/
 /*                List of Functions              */
@@ -30,8 +30,17 @@ static K rcmd(int type,K x);
 /*                Global Variable                */
 /*-----------------------------------------------*/
 
-__thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
+#ifdef _WIN32
+// initialise thread-local. Will fail in other threads. Ideally need to check if
+// on q main thread.
+__declspec(thread) int ROPEN= -1;
+__declspec(thread) int RLOAD= 0;
+#else
+// initialise thread-local. Will fail in other threads. Ideally need to check if
+// on q main thread.
+__thread int ROPEN=-1;
 __thread int RLOAD=0;
+#endif
 
 /*-----------------------------------------------*/
 /*                  Functions                    */
@@ -208,4 +217,32 @@ K rset(K x,K y) {
   return (K)0;
 }
 
-__attribute__((constructor)) V __attach(V) {RLOAD=1;}
+
+// Enable Visual Studio to compile.
+// See: https://stackoverflow.com/questions/1113409/attribute-constructor-equivalent-in-vc
+#ifdef __cplusplus
+#define INITIALIZER(f)                                                         \
+  static void f(void);                                                         \
+  struct f##_t_ {                                                              \
+    f##_t_(void) { f(); }                                                      \
+  };                                                                           \
+  static f##_t_ f##_;                                                          \
+  static void f(void)
+#elif defined(_MSC_VER)
+#pragma section(".CRT$XCU", read)
+#define INITIALIZER2_(f, p)                                                    \
+  static void f(void);                                                         \
+  __declspec(allocate(".CRT$XCU")) void (*f##_)(void)= f;                      \
+  __pragma(comment(linker, "/include:" p #f "_")) static void f(void)
+#ifdef _WIN64
+#define INITIALIZER(f) INITIALIZER2_(f, "")
+#else
+#define INITIALIZER(f) INITIALIZER2_(f, "_")
+#endif
+#else
+#define INITIALIZER(f)                                                         \
+  static void f(void) __attribute__((constructor));                            \
+  static void f(void)
+#endif
+
+INITIALIZER(attach) { RLOAD= 1; }

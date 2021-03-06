@@ -7,8 +7,9 @@
 /*                Load Libraries                 */
 /*-----------------------------------------------*/
 
-#include "common.h"
+// Order of include does matter.
 #include "embedr.h"
+#include "common.h"
 
 /*-----------------------------------------------*/
 /*                  Functions                    */

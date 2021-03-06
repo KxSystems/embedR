@@ -12,6 +12,32 @@
 #include "socketpair.h"
 #include "common.h"
 
+#ifdef _WIN32
+#include <windows.h> /* WinAPI */
+
+/* Windows sleep in 100ns units */
+BOOLEAN nanosleep(LONGLONG ns) {
+  /* Declarations */
+  HANDLE timer;     /* Timer handle */
+  LARGE_INTEGER li; /* Time defintion */
+  /* Create timer */
+  if(!(timer= CreateWaitableTimer(NULL, TRUE, NULL)))
+    return FALSE;
+  /* Set timer properties */
+  li.QuadPart= -ns;
+  if(!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE)) {
+    CloseHandle(timer);
+    return FALSE;
+  }
+  /* Start & wait for timer */
+  WaitForSingleObject(timer, INFINITE);
+  /* Clean resources */
+  CloseHandle(timer);
+  /* Slept without problems */
+  return TRUE;
+}
+#endif
+
 /*-----------------------------------------------*/
 /*                List of Functions              */
 /*-----------------------------------------------*/
@@ -100,7 +126,11 @@ void* pingthread;
 
 V* pingmain(V* v){
   while(1){
-    nanosleep(&(struct timespec){.tv_sec=0, .tv_nsec=1000000}, NULL);
+    #ifndef _WIN32
+      nanosleep(&(struct timespec){.tv_sec=0, .tv_nsec=1000000}, NULL);
+    #else
+      nanosleep(1000000);
+    #endif
     send(spair[1], "M", 1, 0);
   }
 }
@@ -132,7 +162,7 @@ K ropen(K x) {
   if(dumb_socketpair(spair, 1) == -1)
     return krr("Init failed for socketpair");
   sd1(-spair[0], &processR);
-  #ifndef WIN32
+  #ifndef _WIN32
     pthread_t t;
     if(pthread_create(&t, NULL, pingmain, NULL))
       R krr("poller_thread");

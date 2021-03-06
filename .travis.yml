@@ -73,7 +73,7 @@ before_install:
   - cd build
   - if [[ $TRAVIS_OS_NAME == windows ]]; then
       cmake --config Release ..;
-      cmake --config Release --build . --target install;
+      cmake --build . --config Release --target install;
     else
       cmake ..;
       cmake --build . --target install;

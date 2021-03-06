@@ -16,7 +16,9 @@ Download the appropriate release archive from [releases](../../releases/latest) 
 
 ### Install from Source
 
-For Linux/MacOS it is possible to build the library from source using the CMake file provided.
+Building the library from source uses the CMake file provided.
+
+#### Linux/ Mac
 
 For successful installation you need to set a path to `lib` directory on `R_LIBRARY_DIR` and a path to `include` directory on `R_INCLUDE_DIR` with following commands:
 
@@ -34,6 +36,56 @@ Then execte the commands below at the root directory of this repository:
 embedR]$ mkdir build && cd build
 build]$ cmake ..
 build]$ cmake --build . --target install
+
+```
+
+**Note:** `cmake --build . --target install` installs the required share object and q files to the `QHOME\[os]64` and `QHOME` directories respectively. If you do not wish to install these files directly, you can execute `cmake --build .` instead of `cmake --build . --target install` and move the files from their build location at `build/embedr`.
+
+#### Windows
+
+Set a path to `lib` directory on `R_LIBRARY_DIR` and a path to `include` directory on `R_INCLUDE_DIR` with following commands:
+
+```bat
+
+:: Example output as we don't know how to evaluate an expression...
+> R RHOME
+C:\PROGRA~1\R\R-40~1.4
+> set R_HOME=C:\PROGRA~1\R\R-40~1.4
+> set R_LIBRARY_DIR=%R_HOME%\bin\x64
+:: looks like `include` is in the same layer as `lib`. Check your own environment. 
+> set R_INCLUDE_DIR=%R_HOME%\include
+
+```
+
+Next you need to create `R.lib` from `R.dll` in `R_LIBRARY_DIR` 🔨🔨🔨. This `R.lib` will be used for linking the interface.
+
+```bat
+
+> cd %R_LIBRARY_DIR%
+x64> echo EXPORTS > R.def
+x64> for /f "usebackq tokens=4,* delims= " %i in (`dumpbin /exports "R.dll"`) do echo %i >> R.def
+:: Then delete line 2-9 (garbage of header) manually so that `ALTCOMPLEX_ELT` comes next to `EXPORTS`.
+:: After the manual processing, create lib file.
+x64> lib /def:R.def /out:R.lib /machine:x64
+
+```
+
+Then you need to create a symlink to `R.dll`.
+
+```bat
+
+x64> cd %QHOME%\w64
+w64> MKLINK R.dll %R_HOME%\bin\R.dll
+
+```
+
+Then execte the commands below at the root directory of this repository on Visual Studio (assuming `-G "Visual Studio 15 2017 Win64"` is not necessary):
+
+```bat
+
+embedR>$ mkdir build && cd build
+build> cmake --config Release ..
+build> cmake --build . --config Release --target install
 
 ```
 

@@ -18,7 +18,6 @@
 #pragma comment(lib, "ws2_32.lib")
 SOCKET spair[2];
 #else
-#include <unistd.h>
 #define SOCKET_ERROR -1
 I spair[2];
 #endif
@@ -36,7 +35,7 @@ EXP K rclose(K x);
 EXP K rexec(K x);
 EXP K rget(K x);
 EXP K rset(K x,K y);
-K rcmd(int type,K x);
+static K rcmd(int type,K x);
 
 /*-----------------------------------------------*/
 /*                Global Variable                */
@@ -126,13 +125,6 @@ static char * getkstring(K x) {
  * The public interface used from Q.
  */
 
-/*
-#ifdef _WIN32
-static SOCKET spair[2];
-#else
-static int spair[2];
-#endif
-*/
 void* pingthread;
 
 V* pingmain(V* v){

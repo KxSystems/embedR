@@ -36,11 +36,11 @@ extern const int kdbSecOffset;
 /**
  * @brief Attribute set to q time related types when it is converted to R object.
  */
-SEXP R_UnitsSymbol;
+extern SEXP R_UnitsSymbol;
 /**
  * @brief Attribute set to q time related types when it is converted to R object.
  */
-SEXP R_TzSymbol;
+extern SEXP R_TzSymbol;
 
 /*-----------------------------------------------*/
 /*                  Functions                    */

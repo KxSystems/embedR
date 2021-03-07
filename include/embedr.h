@@ -19,7 +19,6 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <unistd.h>
 #define EXP
 #endif
 #include <R_ext/Parse.h>

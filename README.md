@@ -1,6 +1,12 @@
 # embedR: Embedding R inside q
 
-See <https://code.kx.com/v2/interfaces/with-r/#calling-r-from-q>
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/embedr)](https://github.com/kxsystems/kafka/releases) [![Travis (.org) branch](https://img.shields.io/travis/kxsystems/embedr/master)](https://travis-ci.org/kxsystems/embedr/branches)
+
+## Introduction
+
+[<img src="images/R_logo.png" width="125"/>](images/R_logo.png) While **kdb+** is good at pre-processing data it does not have native libraries to analyze scientifically. On the other hand, the programming language **R** is used for the very statistic analysis and therefore has numerous libraries.
+
+This interface **embedR** embeds R process inside q process and allows user to call R functions from q process after passing data to R side with a simple function.
 
 ## Installation
 
@@ -31,7 +37,7 @@ For successful installation you need to set a path to `lib` directory on `R_LIBR
 
 ```
 
-Then execte the commands below at the root directory of this repository:
+Then execute the commands below at the root directory of this repository:
 
 ```bash
 
@@ -94,27 +100,17 @@ build> cmake --build . --config Release --target install
 
 ```
 
-**Note:** `cmake --build . --config Release --target install` installs the required share object and q files to the `QHOME\[os]64` and `QHOME` directories respectively. If you do not wish to install these files directly, you can execute `cmake --build . --config Release` instead of `cmake --build . --config Release --target install` and move the files from their build location at `build/embedr`.
+**Note:** `cmake --build . --config Release --target install` installs the required share object and q files to the `QHOME\w64` and `QHOME` directories respectively. If you do not wish to install these files directly, you can execute `cmake --build . --config Release` instead of `cmake --build . --config Release --target install` and move the files from their build location at `build/embedr`.
 
 ## Calling R
 
-When calling R, you need to set `R_HOME`. This can be set as follows:
-
-```bash
-
-# Linux/macOS
-export R_HOME=`R RHOME`
-# Windows
-for /f "delims=" %a in ('R RHOME') do @set R_HOME=%a
-
-```
 
 The library has four main methods:
 
-- `.rk.open`: Initialise embedR. Optional to call. Allows to set verbose mode as `Ropen 1`.
-- `.rk.exec`: execute an R command, do not return a result to q.
-- `.rk.get`: execute an R command, return the result to q.
-- `.rk.set`: set a variable in the R memory space
+- `.rk.open`: Initialise embedR. Optional to call. Allows to set verbose mode as `.rk.open 1`.
+- `.rk.exec`: Execute an R command, do not return a result to q.
+- `.rk.get`: Execute an R command, return the result to q.
+- `.rk.set`: Set a variable in the R memory space.
 
 
 ## Documentation

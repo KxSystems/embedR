@@ -12,7 +12,7 @@
 #include "socketpair.h"
 #include "common.h"
 
-#ifdef _WIN32
+#if(defined(_WIN32) && (defined(_MSC_VER)))
 #include <windows.h> /* WinAPI */
 
 /* Windows sleep in 100ns units */
@@ -126,11 +126,11 @@ void* pingthread;
 
 V* pingmain(V* v){
   while(1){
-    #ifndef _WIN32
-      nanosleep(&(struct timespec){.tv_sec=0, .tv_nsec=1000000}, NULL);
-    #else
-      nanosleep(1000000);
-    #endif
+#if(defined(_WIN32) && (defined(_MSC_VER)))
+    nanosleep(1000000);
+#else
+    nanosleep(&(struct timespec){ .tv_sec= 0, .tv_nsec= 1000000 }, NULL);
+#endif
     send(spair[1], "M", 1, 0);
   }
 }

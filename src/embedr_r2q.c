@@ -12,8 +12,53 @@
 #include "socketpair.h"
 #include "common.h"
 
+//%% Socket Library %%//vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv/
+
+#ifdef _WIN32
+#pragma comment(lib, "ws2_32.lib")
+SOCKET spair[2];
+#else
+#include <unistd.h>
+#define SOCKET_ERROR -1
+I spair[2];
+#endif
+
+/*-----------------------------------------------*/
+/*                List of Functions              */
+/*-----------------------------------------------*/
+
+/*
+ * User interface
+ */
+
+EXP K ropen(K x);
+EXP K rclose(K x);
+EXP K rexec(K x);
+EXP K rget(K x);
+EXP K rset(K x,K y);
+K rcmd(int type,K x);
+
+/*-----------------------------------------------*/
+/*                Global Variable                */
+/*-----------------------------------------------*/
+
+#ifdef _WIN32
+// initialise thread-local. Will fail in other threads. Ideally need to check if
+// on q main thread.
+__declspec(thread) int ROPEN= -1;
+__declspec(thread) int RLOAD= 0;
+#else
+// initialise thread-local. Will fail in other threads. Ideally need to check if
+// on q main thread.
+__thread int ROPEN=-1;
+__thread int RLOAD=0;
+#endif
+
+/*-----------------------------------------------*/
+/*                  Functions                    */
+/*-----------------------------------------------*/
+
 #if(defined(_WIN32) && (defined(_MSC_VER)))
-#include <windows.h> /* WinAPI */
 
 /* Windows sleep in 100ns units */
 BOOLEAN nanosleep(LONGLONG ns) {
@@ -37,41 +82,6 @@ BOOLEAN nanosleep(LONGLONG ns) {
   return TRUE;
 }
 #endif
-
-/*-----------------------------------------------*/
-/*                List of Functions              */
-/*-----------------------------------------------*/
-
-/*
- * User interface
- */
-
-K ropen(K x);
-K rclose(K x);
-K rexec(K x);
-K rget(K x);
-K rset(K x,K y);
-static K rcmd(int type,K x);
-
-/*-----------------------------------------------*/
-/*                Global Variable                */
-/*-----------------------------------------------*/
-
-#ifdef _WIN32
-// initialise thread-local. Will fail in other threads. Ideally need to check if
-// on q main thread.
-__declspec(thread) int ROPEN= -1;
-__declspec(thread) int RLOAD= 0;
-#else
-// initialise thread-local. Will fail in other threads. Ideally need to check if
-// on q main thread.
-__thread int ROPEN=-1;
-__thread int RLOAD=0;
-#endif
-
-/*-----------------------------------------------*/
-/*                  Functions                    */
-/*-----------------------------------------------*/
 
 /*
  * Conversion from R to Q
@@ -116,12 +126,13 @@ static char * getkstring(K x) {
  * The public interface used from Q.
  */
 
+/*
 #ifdef _WIN32
 static SOCKET spair[2];
 #else
 static int spair[2];
 #endif
-
+*/
 void* pingthread;
 
 V* pingmain(V* v){
@@ -150,7 +161,7 @@ K processR(I d){
  * 1         --verbose
  */
 
-K ropen(K x) {
+EXP K ropen(K x) {
   if(!RLOAD) return krr("main thread only");
   if (ROPEN >= 0) return ki(ROPEN);
   int s,mode=0;	char *argv[] = {"R","--slave"};
@@ -177,9 +188,9 @@ K ropen(K x) {
 
 // note that embedded R can be initialised once. No open/close/open supported 
 // http://r.789695.n4.nabble.com/Terminating-and-restarting-an-embedded-R-instance-possible-td4641823.html
-K rclose(K x){R NULL;}
-K rexec(K x) { return rcmd(0,x); }
-K rget(K x) { return rcmd(1,x); }
+EXP K rclose(K x){R NULL;}
+EXP K rexec(K x) { return rcmd(0,x); }
+EXP K rget(K x) { return rcmd(1,x); }
 
 static char* ParseError[5]={"null","ok","incomplete","error","eof"};
 
@@ -216,7 +227,7 @@ K rcmd(int type,K x) {
   return (K)0;
 }
 
-K rset(K x,K y) {
+EXP K rset(K x,K y) {
   if(!RLOAD)
     return krr("main thread only");
   if (ROPEN < 0)

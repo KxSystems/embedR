@@ -71,8 +71,6 @@ endif()
 target_link_libraries(${MY_LIBRARY_NAME} PRIVATE
     ${Q_LIBRARY}
     ${R_LIBRARY}
-    #$<$<C_COMPILER_ID:MSVC>:${WS2_LIBRARY}>
-    #${WS2_LIBRARY}
 )
 
 ##%% Installation %%##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv/

@@ -8,11 +8,13 @@ See <https://code.kx.com/v2/interfaces/with-r/#calling-r-from-q>
 
 Download the appropriate release archive from [releases](../../releases/latest) page. 
 
-- Linux/Mac
+- Linux/Mac:
 
       $ install.sh
 
-- Windows: Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively.
+- Windows:
+
+      > install.bat
 
 ### Install from Source
 
@@ -49,10 +51,9 @@ Set a path to `lib` directory on `R_LIBRARY_DIR` and a path to `include` directo
 
 :: Example output as we don't know how to evaluate an expression...
 > R RHOME
-C:\PROGRA~1\R\R-40~1.4
-> set R_HOME=C:\PROGRA~1\R\R-40~1.4
+C:\PROGRA~1\R\R-36~1.3
+> set R_HOME=C:\PROGRA~1\R\R-36~1.3
 > set R_LIBRARY_DIR=%R_HOME%\bin\x64
-:: looks like `include` is in the same layer as `lib`. Check your own environment. 
 > set R_INCLUDE_DIR=%R_HOME%\include
 
 ```
@@ -70,20 +71,24 @@ x64> lib /def:R.def /out:R.lib /machine:x64
 
 ```
 
-Then you need to create a symlink to `R.dll`.
+Then you need to create a symlink to `R.dll` and its sub R-related `.dll` files in the same directory (`Rblas.dll`, `Rgraphapp.dll`, `Riconv.dll` and `Rlapack.dll`).
 
 ```bat
 
 x64> cd %QHOME%\w64
-w64> MKLINK R.dll %R_HOME%\bin\R.dll
+w64> MKLINK R.dll %R_LIBRARY_DIR%\R.dll
+w64> MKLINK Rblas.dll %R_LIBRARY_DIR%\Rblas.dll
+w64> MKLINK Rgraphapp.dll %R_LIBRARY_DIR%\Rgraphapp.dll
+w64> MKLINK Riconv.dll %R_LIBRARY_DIR%\Riconv.dll
+w64> MKLINK Rlapack.dll %R_LIBRARY_DIR%\Rlapack.dll
 
 ```
 
-Then execte the commands below at the root directory of this repository on Visual Studio (assuming `-G "Visual Studio 15 2017 Win64"` is not necessary):
+Finally build embedR library by executing the commands below at the root directory of this repository on Visual Studio (assuming `-G "Visual Studio 15 2017 Win64"` is not necessary):
 
 ```bat
 
-embedR>$ mkdir build && cd build
+embedR> mkdir build && cd build
 build> cmake --config Release ..
 build> cmake --build . --config Release --target install
 

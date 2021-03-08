@@ -5,7 +5,7 @@ keywords: interface, kdb+, q, r
 hero: <i class="fab fa-superpowers"></i> Fusion for Kdb+
 ---
 
-# <img src="images/R_logo.png" width="125"/> embedR
+# <img src="../images/R_logo.png" width="50"/> embedR
 
 ## Introduction
 

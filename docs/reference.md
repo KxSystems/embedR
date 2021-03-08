@@ -5,13 +5,7 @@ description: Lists functions available for use within the embedR
 keywords: interface, kdb+, q, r, 
 ---
 
-# :fontawesome-brands-r-project: embedR User Guide
-
-<div class="fusion" markdown="1">
-:fontawesome-brands-superpowers: [Fusion for kdb+](../fusion.md)
-</div>
-:fontawesome-brands-github:
-[kxsystems/embedr](https://github.com/kxsystems/embedr)
+# embedR User Guide
 
 A shared library can be loaded which brings R into the q memory space,
 meaning all the R statistical routines and graphing capabilities can be invoked directly from q.
@@ -38,9 +32,9 @@ The library has five methods:
 
 ```
 
-### Connection
+## Connection
 
-#### .rk.open
+### .rk.open
 
 _Initialise embedR. Optional to call. Allows to set verbose mode as Ropen 1_
 
@@ -49,8 +43,8 @@ Syntax: `.rk.open[signal]`
 Where
 
 - `signal` is an integer which is one of empty, 0 or 1.
-     * 0 or empty: quiet mode
-     * 1: verbose mode
+  * 0 or empty: quiet mode
+  * 1: verbose mode
 
 ```q
 q).rk.open[]
@@ -62,7 +56,7 @@ q).rk.open[1]
 
      As of version 2.0 <b>Ropen</b> was migrated to <b>.rk.open</b>. <b>Ropen</b> will be depricated in version 2.1.
 
-#### .rk.close
+### .rk.close
 
 _Close internal R connection_
 
@@ -72,9 +66,9 @@ Syntax: `.rk.close[]`
 
       As of version 2.0 <b>Rclose</b> was migrated to <b>.rk.close</b>. <b>Rclose</b> will be depricated in version 2.1.
 
-### Execution
+## Execution
 
-#### .rk.exec
+### .rk.exec
 
 _Run an R command, do not return a result_
 
@@ -96,7 +90,7 @@ The following objects are masked from ‘package:base’:
     as.Date, as.Date.numeric
 ```
 
-#### .rk.get
+### .rk.get
 
 _Run an R command, return the result to q_
 
@@ -116,7 +110,7 @@ q).rk.get "today"
 
      As of version 2.0 <b>Rget</b> was migrated to <b>.rk.get</b>. <b>Rget</b> will be depricated in version 2.1.
 
-#### .rk.set
+### .rk.set
 
 _Set a variable in the R memory space_
 
@@ -137,9 +131,9 @@ q).rk.get "mnth"
 
      As of version 2.0 <b>Rset</b> was migrated to <b>.rk.set</b>. <b>Rset</b> will be depricated in version 2.1.
 
-### Graphic
+## Graphic
 
-#### .rk.new
+### .rk.new
 
 _Open plot window with noRStudioGD=TRUE (Normally R will open a new device automatically)_
 
@@ -149,7 +143,7 @@ Syntax: `.rk.new[]`
 
      As of version 2.0 <b>Rnew</b> was migrated to <b>.rk.new</b>. <b>Rnew</b> will be depricated in version 2.1.
 
-#### .rk.off
+### .rk.off
 
 _Close plot window_
 
@@ -161,9 +155,9 @@ To close the graphics window, use `dev.off()` rather than the close button on th
 
      As of version 2.0 <b>Roff</b> was migrated to <b>.rk.off</b>. <b>Roff</b> will be depricated in version 2.1.
 
-### Utility
+## Utility
 
-#### .rk.install
+### .rk.install
 
 _Install package in embeded R process over the connection_
 

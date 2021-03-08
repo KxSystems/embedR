@@ -58,20 +58,6 @@ Pre-built packages are available from [here](https://github.com/KxSystems/embedR
 
 If the appropriate build is not available on your target system, download from <i class="fab fa-github"></i> [KxSystems/embedR](https://github.com/KxSystems/embedR) and follow the installation instruction in `README.md`.
 
-The `R_HOME` environment variable must be set prior to starting q.
-To find out what that should be, run R from the Bash shell and see the result of `R.home()`
-
-```r
-> R.home()
-[1] "/Library/Frameworks/R.framework/Resources"
-```
-
-and then set it accordingly in your environment; e.g. for macOS with a Bash shell
-
-```bash
-$export R_HOME=/Library/Frameworks/R.framework/Resources
-```
-
 Optional additional environment variables are `R_SHARE_DIR`, `R_INCLUDE_DIR`, `LD_LIBRARY_PATH` (for libR.so).
 
 ## Testing
@@ -80,9 +66,11 @@ User can test embedR with the test script named `test.q` provided in `tests` fol
 
 Procedure is simple. Go to `tests` directory and run `test.q`.
 
+**Note:** If you don't have multi-threading environment eliminate `-s 2` flag.
+
 ```bash
 $ cd embedR/tests
-$ q test.q
+$ q test.q -test_data_frame true -s 2
 0i
 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -95,7 +83,7 @@ $ q test.q
 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
         Completed!!
-        Score:  77/77
-        Fail:   0/77
+        Score:  78/78
+        Fail:   0/78
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ```

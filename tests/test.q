@@ -46,7 +46,7 @@ EQUAL:{[id;x;y]
 \S 42
 
 //Set console width
-\c 25 200
+\c 25 300
 
 // set verbose mode
 .rk.open 1
@@ -232,7 +232,7 @@ EQUAL[67; count .rk.get`x; 1];
 
 EQUAL[68; .[.rk.set;("x[0]";1); "nyi"~]; 1b];
 EQUAL[69; .rk.get["c()"]; .rk.get"NULL"];
-EQUAL[70; (); .rk.get"c()"];
+EQUAL[70; .rk.get"c()"; ()];
 EQUAL[71; {@[.rk.get;x;"type"~]}each (.z.p;0b;1;1f;{};([1 2 3]1 2 3)); 111111b];
 .rk.set[`x;1]
 EQUAL[72; .rk.get each ("x";enlist "x";`x;`x`x); 1#/:(1;1;1;1)]; // ("x";"x")?

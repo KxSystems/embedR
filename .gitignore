@@ -35,6 +35,12 @@
 *.x86_64
 *.hex
 
+# k.h
+include/k.h
+
+# Package
+build/
+
 # Debug files
 *.dSYM/
 *.su

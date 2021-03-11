@@ -1,69 +1,132 @@
 # embedR: Embedding R inside q
 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/embedr)](https://github.com/kxsystems/kafka/releases) [![Travis (.org) branch](https://img.shields.io/travis/kxsystems/embedr/master)](https://travis-ci.org/kxsystems/embedr/branches)
 
+## Introduction
 
-See <https://code.kx.com/v2/interfaces/with-r/#calling-r-from-q>
+[<img src="images/R_logo.png" width="125"/>](images/R_logo.png) While **kdb+** is good at pre-processing data it does not have native libraries to analyze scientifically. On the other hand, the programming language **R** is used for the very statistic analysis and therefore has numerous libraries.
 
+This interface **embedR** embeds R process inside q process and allows user to call R functions from q process after passing data to R side with a simple function.
 
 ## Installation
 
-### Download
+### Download Pre-built Binary
+
 Download the appropriate release archive from [releases](../../releases/latest) page. 
 
-### Unpack and install content of the archive 
+- Linux/Mac:
 
-environment     | action
-----------------|---------------------------------------------------------------------------------------
-Linux           | `tar xzvf embedr_linux-v*.tar.gz -C $QHOME --strip 1`
-macOS           | `tar xzvf embedr_osx-v*.tar.gz -C $QHOME --strip 1`
-Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively. 
+      $ install.sh
 
+- Windows:
+
+      > install.bat
+
+### Install from Source
+
+Building the library from source uses the CMake file provided.
+
+#### Linux/ Mac
+
+For successful installation you need to set a path to `lib` directory on `R_LIBRARY_DIR` and a path to `include` directory on `R_INCLUDE_DIR` with following commands:
+
+```bash
+
+]$ export R_LIBRARY_DIR=$(R RHOME)/lib
+]$ export R_INCLUDE_DIR=$(R CMD config --cppflags | cut -c 3-)
+
+```
+
+Then execute the commands below at the root directory of this repository:
+
+```bash
+
+embedR]$ mkdir build && cd build
+build]$ cmake ..
+build]$ cmake --build . --target install
+
+```
+
+**Note:** `cmake --build . --target install` installs the required share object and q files to the `QHOME\[os]64` and `QHOME` directories respectively. If you do not wish to install these files directly, you can execute `cmake --build .` instead of `cmake --build . --target install` and move the files from their build location at `build/embedr`.
+
+#### Windows
+
+Set a path to `lib` directory on `R_LIBRARY_DIR` and a path to `include` directory on `R_INCLUDE_DIR` with following commands:
+
+```bat
+
+:: Example output as we don't know how to evaluate an expression...
+> R RHOME
+C:\PROGRA~1\R\R-36~1.3
+> set R_HOME=C:\PROGRA~1\R\R-36~1.3
+> set R_LIBRARY_DIR=%R_HOME%\bin\x64
+> set R_INCLUDE_DIR=%R_HOME%\include
+
+```
+
+Next you need to create `R.lib` from `R.dll` in `R_LIBRARY_DIR` 🔨🔨🔨. This `R.lib` will be used for linking the interface.
+
+```bat
+
+> cd %R_LIBRARY_DIR%
+x64> echo EXPORTS > R.def
+x64> for /f "usebackq tokens=4,* delims= " %i in (`dumpbin /exports "R.dll"`) do echo %i >> R.def
+:: Then delete line 2-9 (garbage of header) manually so that `ALTCOMPLEX_ELT` comes next to `EXPORTS`.
+:: After the manual processing, create lib file.
+x64> lib /def:R.def /out:R.lib /machine:x64
+
+```
+
+Then you need to create a symlink to `R.dll` and its sub R-related `.dll` files in the same directory (`Rblas.dll`, `Rgraphapp.dll`, `Riconv.dll` and `Rlapack.dll`).
+
+```bat
+
+x64> cd %QHOME%\w64
+w64> MKLINK R.dll %R_LIBRARY_DIR%\R.dll
+w64> MKLINK Rblas.dll %R_LIBRARY_DIR%\Rblas.dll
+w64> MKLINK Rgraphapp.dll %R_LIBRARY_DIR%\Rgraphapp.dll
+w64> MKLINK Riconv.dll %R_LIBRARY_DIR%\Riconv.dll
+w64> MKLINK Rlapack.dll %R_LIBRARY_DIR%\Rlapack.dll
+
+```
+
+Finally build embedR library by executing the commands below at the root directory of this repository on Visual Studio (assuming `-G "Visual Studio 15 2017 Win64"` is not necessary):
+
+```bat
+
+embedR> mkdir build && cd build
+build> cmake --config Release ..
+build> cmake --build . --config Release --target install
+
+```
+
+**Note:** `cmake --build . --config Release --target install` installs the required share object and q files to the `QHOME\w64` and `QHOME` directories respectively. If you do not wish to install these files directly, you can execute `cmake --build . --config Release` instead of `cmake --build . --config Release --target install` and move the files from their build location at `build/embedr`.
 
 ## Calling R
 
-When calling R, you need to set `R_HOME`. Required are:
-
-```bash
-# Linux/macOS
-export R_HOME=`R RHOME`
-# Windows
-for /f "delims=" %a in ('R RHOME') do @set R_HOME=%a
-```
 
 The library has four main methods:
 
-- `Ropen`: Initialise embedded R. Optional to call. Allows to set verbose mode as `Ropen 1`.
-- `Rcmd`: run an R command, do not return a result
-- `Rget`: run an R command, return the result to q
-- `Rset`: set a variable in the R memory space
+- `.rk.open`: Initialise embedR. Optional to call. Allows to set verbose mode as `.rk.open 1`.
+- `.rk.exec`: Execute an R command, do not return a result to q.
+- `.rk.get`: Execute an R command, return the result to q.
+- `.rk.set`: Set a variable in the R memory space.
 
 
-### Interactive plotting
+## Documentation
 
-If using interactive plotting with `lattice` and/or `ggplot2` you will need to call `print` on a chart object. 
-
+Documentation for this interface is available [here](https://code.kx.com/q/interfaces/r/embedr)
 
 ## Examples
 
-See [examples](examples) folder. 
+A number of example scripts are provided in the [examples](examples) folder.
 
-Note: Examples are kdb+ 3.5 or higher.
+**Note:** Examples are kdb+ 3.5 or higher.
 
+1. Plotting the 'moving window volatility' of returns
+2. Analysis of corporate credit card transactions in the UK dataset available [here](https://ckan.publishing.service.gov.uk/dataset/corporate-credit-card-transactions-2014-152)
 
-### Example 1
+## Notes
 
-`e4.q` is a simple example of plot 'moving window volatility' of returns. Converted from http://www.mayin.org/ajayshah/KB/R/html/p4.html
-
-
-### Example 2
-
-`pcd.q` is based on [Corporate credit card transactions 2014-15](https://data.gov.uk/dataset/corporate-credit-card-transaction-2014-15).
-
-Download CSV from the link above and save it in the same folder as `pcd.q` under name `pcd2014v1.csv`.
-
-
-### Example 3
-
-<http://data.london.gov.uk/datastore/package/tubenetwork-performance-data>
-
-Left for the reader :)
+1. If using interactive plotting with `lattice` and/or `ggplot2` you will need to call `print` on a chart object.
+2. As of v2.0 the callable functions have migrated to the `.rk` namespace in line with the other fusion interfaces. The historic interface using `Rcmd`,`Ropen` etc will be deprecated in v2.1

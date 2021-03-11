@@ -82,7 +82,7 @@ before_install:
 
 script:
   - if [[ $TESTS == "True" && "x$OD" != "x" && "x$QLIC_KC" != "x" ]]; then
-      q tests/test.q -test_data_frame false
+      q tests/test.q -test_data_frame false;
     fi
   - if [[ $TRAVIS_OS_NAME == "windows" && $BUILD == "True" ]]; then
       7z a -tzip -r $FILE_NAME ./build/$FILE_ROOT/*;

@@ -161,44 +161,44 @@ PROGRESS["Dictionary Test Finished!!"];
 
 // timestamp
 .rk.set["tmstp"; 2020.03.16D17:30:45.123456789];
-EQUAL[47; .rk.get"tmstp"; (), 2020.03.16D17:30:45.123456789];
+EQUAL[39; .rk.get"tmstp"; (), 2020.03.16D17:30:45.123456789];
 
 // month
 .rk.set["mnth"; `month$/:2020.04.02 2010.01.29]
-EQUAL[54; .rk.get"mnth"; 2020.04 2010.01m];
+EQUAL[40; .rk.get"mnth"; 2020.04 2010.01m];
 
 // dates
-EQUAL[39; .rk.get"as.Date('2005-12-31')"; (), 2005.12.31];
-EQUAL[40; .rk.get"as.Date(NA)"; (), 0Nd];
-EQUAL[41; .rk.get"rep(as.Date('2005-12-31'),2)"; 2005.12.31 2005.12.31];
+EQUAL[41; .rk.get"as.Date('2005-12-31')"; (), 2005.12.31];
+EQUAL[42; .rk.get"as.Date(NA)"; (), 0Nd];
+EQUAL[43; .rk.get"rep(as.Date('2005-12-31'),2)"; 2005.12.31 2005.12.31];
 
 // datetime
 .rk.exec["Sys.setenv(TZ='UTC')"];
-EQUAL[42; .rk.get"as.POSIXct(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"; (),2018.02.18T04:00:01.000z];
-EQUAL[43; .rk.get"as.POSIXlt(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"; (),2018.02.18T04:00:01.000z];
-EQUAL[44; .rk.get"c(as.POSIXct(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXct(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"; (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)];
-EQUAL[45; .rk.get"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXlt(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"; (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)];
+EQUAL[44; .rk.get"as.POSIXct(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"; (),2018.02.18T04:00:01.000z];
+EQUAL[45; .rk.get"as.POSIXlt(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"; (),2018.02.18T04:00:01.000z];
+EQUAL[46; .rk.get"c(as.POSIXct(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXct(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"; (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)];
+EQUAL[47; .rk.get"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXlt(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"; (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)];
 .rk.set["dttm"; 2018.02.18T04:00:01.000z];
-EQUAL[46; .rk.get"dttm"; (), 2018.02.18T04:00:01.000z];
+EQUAL[48; .rk.get"dttm"; (), 2018.02.18T04:00:01.000z];
 
 // days
 .rk.set["days"; 1D 2D];
-EQUAL[52; .rk.get"days"; 1D 2D];
-EQUAL[53; .rk.get"as.difftime(c(1, 2), units=\"days\")"; 1D 2D];
+EQUAL[49; .rk.get"days"; 1D 2D];
+EQUAL[50; .rk.get"as.difftime(c(1, 2), units=\"days\")"; 1D 2D];
 
 // timespan
 .rk.set["tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012]
-EQUAL[55; .rk.get"tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012];
+EQUAL[51; .rk.get"tmspans"; 0D12 0D04:20:17.123456789 0D00:00:00.000000012];
 
 // minute
 .rk.set["mnt"; `minute$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
-EQUAL[50; .rk.get "mnt"; 12:00 12:30];
-EQUAL[51; .rk.get"as.difftime(c(1, 2), units=\"mins\")"; 00:01 00:02];
+EQUAL[52; .rk.get "mnt"; 12:00 12:30];
+EQUAL[53; .rk.get"as.difftime(c(1, 2), units=\"mins\")"; 00:01 00:02];
 
 // second
 .rk.set["scnd"; `second$(2019.04.01D12:00:30; 2019.04.01D12:30:45)];
-EQUAL[48; .rk.get"scnd"; 12:00:30 12:30:45];
-EQUAL[49; .rk.get"as.difftime(c(1, 2), units=\"secs\")"; 00:00:01 00:00:02];
+EQUAL[54; .rk.get"scnd"; 12:00:30 12:30:45];
+EQUAL[55; .rk.get"as.difftime(c(1, 2), units=\"secs\")"; 00:00:01 00:00:02];
 
 PROGRESS["Time Test Finished!!"];
 

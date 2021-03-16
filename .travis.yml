@@ -1,23 +1,99 @@
+jobs:
+  include:
+  - dist: xenial
+    os: linux
+  - dist: bionic
+    os: linux
+  - os: osx
+os: linux
+dist: xenial
 language: c
-os:
-- linux
-- osx
+compiler: gcc
+
 before_install:
-- if [ $TRAVIS_OS_NAME = linux ]; then
-    sudo apt-get install r-base;
-  fi
-- if [ $TRAVIS_OS_NAME = osx ]; then
-    export HOMEBREW_AUTO_UPDATING=0;
-    brew install --build-from-source r;
-  fi
+  # Set global flag
+  - export TESTS="True"
+
+  # Install R
+  - if [[ $TRAVIS_OS_NAME == linux ]]; then
+      sudo apt-get install r-base;
+    elif [[ $TRAVIS_OS_NAME == osx ]]; then
+      export HOMEBREW_AUTO_UPDATING=0;
+      brew install --build-from-source r;
+    else
+      echo "$TRAVIS_OS_NAME is not supported";
+      exit 1;
+    fi
+  
+  # Setup R directory.
+  - export R_LIBRARY_DIR=$(R RHOME)/lib
+  - export R_INCLUDE_DIR=$(R CMD config --cppflags | cut -c 3-)
+  - export LD_LIBRARY_PATH=${R_LIBRARY_DIR}:${LD_LIBRARY_PATH}
+  - export DYLD_LIBRARY_PATH=${R_LIBRARY_DIR}:${DYLD_LIBRARY_PATH}
+  
+  # Install q and set QHOME
+  - if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+      QLIBDIR=l64;
+      OD=$L64;
+    elif [[ $TRAVIS_OS_NAME == "osx" ]]; then
+      QLIBDIR=m64;
+      OD=$M64;
+    elif [[ $TRAVIS_OS_NAME == "windows" ]]; then
+      QLIBDIR=w64;
+      OD=$W64;
+    else
+      echo "unknown OS ('$TRAVIS_OS_NAME')" >&2; exit 1;
+    fi
+  - export QLIBDIR
+  - mkdir qhome;
+  - export QHOME=$(pwd)/qhome;
+  - export PATH=$QHOME/$QLIBDIR:$PATH;
+  
+  # Set up q for testing and execute tests on multiple 
+  - if [[ $TESTS == "True" && "x$OD" != "x" && "x$QLIC_KC" != "x" ]]; then
+      export PATH=$R_INSTALL_DIR/lib:$PATH;
+      curl -o ${QHOME}/q.zip -L $OD;
+      unzip -d ${QHOME} ${QHOME}/q.zip;
+      rm ${QHOME}/q.zip;
+      echo -n $QLIC_KC |base64 --decode > ${QHOME}/kc.lic;
+    else
+      echo "No kdb+, no tests";
+    fi
+
+  # Set package name
+  - if [[ $TRAVIS_OS_NAME == "windows" ]]; then
+      export FILE_TAIL="zip";
+    else
+      export FILE_TAIL="tgz";
+    fi
+  - export FILE_NAME=$FILE_ROOT-$TRAVIS_OS_NAME-$ARCH-$TRAVIS_BRANCH.$FILE_TAIL
+
+  # Build package
+  - mkdir build
+  - cd build
+  - if [[ $TRAVIS_OS_NAME == windows ]]; then
+      cmake --config Release ..;
+      cmake --build . --config Release --target install;
+    else
+      cmake ..;
+      cmake --build . --target install;
+    fi
+  - cd ..
+
 script:
-- make
-- echo "Preparing version $TRAVIS_BRANCH-$TRAVIS_COMMIT"
-- mkdir embedr; cp -r rinit.q rtest.q l32 l64 m32 m64 embedr/ || true;
-- echo "$TRAVIS_BRANCH-$TRAVIS_COMMIT" > embedr/VERSION.embedr;
-- cp LICENSE embedr/LICENSE.embedr; cp README.md embedr/README.embedr;
-- tar czvf embedr_$TRAVIS_OS_NAME-$TRAVIS_BRANCH.tar.gz embedr
-- echo "Packaged as embedr_$TRAVIS_OS_NAME-$TRAVIS_BRANCH.tar.gz"
+  - if [[ $TESTS == "True" && "x$OD" != "x" && "x$QLIC_KC" != "x" ]]; then
+      q tests/test.q -test_data_frame false;
+    fi
+  - if [[ $TRAVIS_OS_NAME == "windows" && $BUILD == "True" ]]; then
+      7z a -tzip -r $FILE_NAME ./build/$FILE_ROOT/*;
+    elif [[ $BUILD == "True" && ( $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ) ]]; then  
+      tar  -zcvf $FILE_NAME -C build/$FILE_ROOT .;
+    elif [[ $TRAVIS_OS_NAME == "windows" ]]; then
+      7z a -tzip $FILE_NAME README.md install.bat install32.bat LICENSE q examples;
+    elif [[ $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ]]; then
+      tar  -zcvf $FILE_NAME README.md install.sh LICENSE q examples;
+    fi
+
 deploy:
   provider: releases
   token: "$GITHUB_APIKEY"

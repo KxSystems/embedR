@@ -41,9 +41,9 @@ time                         | mid
 q)Load in R
 q)\l init.q
 q)//Pass the table into the R memory space
-q).rk.set["mids";mids]
+q).r.set["mids";mids]
 q)//Graph it
-q).rk.exec["plot(mids$time, mids$mid, type='l', xlab='time', ylab='price')"]
+q).r.exec["plot(mids$time, mids$mid, type='l', xlab='time', ylab='price')"]
 ```
 
 This will produce a plot as shown in Figure 4: 
@@ -53,9 +53,9 @@ _Figure 4: Quote mid price plot drawn from q_
 
 ```q
 q)//Save as a PDF file
-q).rk.exec "pdf('test.pdf')"
+q).r.exec "pdf('test.pdf')"
 q)//Close plot window
-q).rk.off[]
+q).r.off[]
 ```
 
 If the q and R installations are running remotely from the user on a Linux machine, the graphics can be seen locally using X11 forwarding over SSH.
@@ -65,11 +65,11 @@ Aside from using R’s powerful graphics, this mechanism also allows you to call
 Note that R’s timezone setting affects date transfers between R and q. For example, in the R server:
 
 ```q
-q).rk.exec "Sys.setenv(TZ='GMT')"
-q).rk.get "date()"
+q).r.exec "Sys.setenv(TZ='GMT')"
+q).r.get "date()"
 "Fri Feb  3 06:33:43 2012"
-q).rk.exec "Sys.setenv(TZ='EST')"
-q).rk.get "date()"
+q).r.exec "Sys.setenv(TZ='EST')"
+q).r.get "date()"
 "Fri Feb  3 01:33:57 2012"
 ```
 

@@ -107,10 +107,10 @@ build> cmake --build . --config Release --target install
 
 The library has four main methods:
 
-- `.rk.open`: Initialise embedR. Optional to call. Allows to set verbose mode as `.rk.open 1`.
-- `.rk.exec`: Execute an R command, do not return a result to q.
-- `.rk.get`: Execute an R command, return the result to q.
-- `.rk.set`: Set a variable in the R memory space.
+- `.r.open`: Initialise embedR. Optional to call. Allows to set verbose mode as `.r.open 1`.
+- `.r.exec`: Execute an R command, do not return a result to q.
+- `.r.get`: Execute an R command, return the result to q.
+- `.r.set`: Set a variable in the R memory space.
 
 
 ## Documentation

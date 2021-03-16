@@ -15,30 +15,30 @@ The library has five methods:
 
 ```txt
   //Connection
-  .rk.open:            Initialise embedR. Optional to call. Allows to set verbose mode as Ropen 1
-  .rk.close:           Close internal R connection
+  .r.open:            Initialise embedR. Optional to call. Allows to set verbose mode as Ropen 1
+  .r.close:           Close internal R connection
 
   //Execution
-  .rk.exec:            Run an R command, do not return a result
-  .rk.get:             Run an R command, return the result to q
-  .rk.set:             Set a variable in the R memory space
+  .r.exec:            Run an R command, do not return a result
+  .r.get:             Run an R command, return the result to q
+  .r.set:             Set a variable in the R memory space
 
   //Graphic
-  .rk.dev              Open plot window with noRStudioGD=TRUE (Normally R will open a new device automatically)
-  .rk.off              Close plot window
+  .r.dev              Open plot window with noRStudioGD=TRUE (Normally R will open a new device automatically)
+  .r.off              Close plot window
 
   //Utility
-  .rk.install          Install package in embeded R process over the connection
+  .r.install          Install package in embeded R process over the connection
 
 ```
 
 ## Connection
 
-### .rk.open
+### .r.open
 
 _Initialise embedR. Optional to call. Allows to set verbose mode as Ropen 1_
 
-Syntax: `.rk.open[signal]`
+Syntax: `.r.open[signal]`
 
 Where
 
@@ -47,40 +47,40 @@ Where
   * 1: verbose mode
 
 ```q
-q).rk.open[]
+q).r.open[]
 q)//or
-q).rk.open[1]
+q).r.open[1]
 ```
 
 !!! note "Note"
 
-     As of version 2.0 <b>Ropen</b> was migrated to <b>.rk.open</b>. <b>Ropen</b> will be depricated in version 2.1.
+     As of version 2.0 <b>Ropen</b> was migrated to <b>.r.open</b>. <b>Ropen</b> will be depricated in version 2.1.
 
-### .rk.close
+### .r.close
 
 _Close internal R connection_
 
-Syntax: `.rk.close[]`
+Syntax: `.r.close[]`
 
 !!! note "Note"
 
-      As of version 2.0 <b>Rclose</b> was migrated to <b>.rk.close</b>. <b>Rclose</b> will be depricated in version 2.1.
+      As of version 2.0 <b>Rclose</b> was migrated to <b>.r.close</b>. <b>Rclose</b> will be depricated in version 2.1.
 
 ## Execution
 
-### .rk.exec
+### .r.exec
 
 _Run an R command, do not return a result_
 
-Synatax: `.rk.exec[command]`
+Synatax: `.r.exec[command]`
 
 Where
 
 - `command` is an R expression to execute in R process
 
 ```q
-q).rk.exec "Sys.setenv(TZ = 'UTC')"
-q).rk.exec "library(xts)"
+q).r.exec "Sys.setenv(TZ = 'UTC')"
+q).r.exec "library(xts)"
 Loading required package: zoo
 
 Attaching package: ‘zoo’
@@ -90,31 +90,31 @@ The following objects are masked from ‘package:base’:
     as.Date, as.Date.numeric
 ```
 
-### .rk.get
+### .r.get
 
 _Run an R command, return the result to q_
 
-Synatax: `.rk.get[rexp]`
+Synatax: `.r.get[rexp]`
 
 Where
 
 - `rexp` is a string denoting an R expression to execute in R process
 
 ```q
-q).rk.exec "today <- as.Date('2020-04-01')"
-q).rk.get "today"
+q).r.exec "today <- as.Date('2020-04-01')"
+q).r.get "today"
 ,2019.04.01
 ```
 
 !!! note "Note"
 
-     As of version 2.0 <b>Rget</b> was migrated to <b>.rk.get</b>. <b>Rget</b> will be depricated in version 2.1.
+     As of version 2.0 <b>Rget</b> was migrated to <b>.r.get</b>. <b>Rget</b> will be depricated in version 2.1.
 
-### .rk.set
+### .r.set
 
 _Set a variable in the R memory space_
 
-Synatax: `.rk.set[rvar; qvar]`
+Synatax: `.r.set[rvar; qvar]`
 
 Where
 
@@ -122,46 +122,46 @@ Where
 - `qvar` is any q object used to assign to the R variable in R process
 
 ```q
-q).rk.set["mnth"; `month$/:2010.01.29 2020.04.02]
-q).rk.get "mnth"
+q).r.set["mnth"; `month$/:2010.01.29 2020.04.02]
+q).r.get "mnth"
 2010.01 2020.04m
 ```
 
 !!! note "Note"
 
-     As of version 2.0 <b>Rset</b> was migrated to <b>.rk.set</b>. <b>Rset</b> will be depricated in version 2.1.
+     As of version 2.0 <b>Rset</b> was migrated to <b>.r.set</b>. <b>Rset</b> will be depricated in version 2.1.
 
 ## Graphic
 
-### .rk.new
+### .r.new
 
 _Open plot window with noRStudioGD=TRUE (Normally R will open a new device automatically)_
 
-Syntax: `.rk.new[]`
+Syntax: `.r.new[]`
 
 !!! note "Note"
 
-     As of version 2.0 <b>Rnew</b> was migrated to <b>.rk.new</b>. <b>Rnew</b> will be depricated in version 2.1.
+     As of version 2.0 <b>Rnew</b> was migrated to <b>.r.new</b>. <b>Rnew</b> will be depricated in version 2.1.
 
-### .rk.off
+### .r.off
 
 _Close plot window_
 
-Syntax: `.rk.off[]`
+Syntax: `.r.off[]`
 
 To close the graphics window, use `dev.off()` rather than the close button on the window.
 
 !!! note "Note"
 
-     As of version 2.0 <b>Roff</b> was migrated to <b>.rk.off</b>. <b>Roff</b> will be depricated in version 2.1.
+     As of version 2.0 <b>Roff</b> was migrated to <b>.r.off</b>. <b>Roff</b> will be depricated in version 2.1.
 
 ## Utility
 
-### .rk.install
+### .r.install
 
 _Install package in embeded R process over the connection_
 
-Syntax: `.rk.install[package]`
+Syntax: `.r.install[package]`
 
 Where
 
@@ -172,7 +172,7 @@ You must be a super user who has an access to the library directory.
 The result is any information regarding install if the package is installed for the first time; otherwise nothing is returned.
 
 ```q
-q).rk.install["psy"]
+q).r.install["psy"]
 Installing package into ‘/usr/lib64/R/library’
 (as ‘lib’ is unspecified)
 trying URL 'https://cloud.r-project.org/src/contrib/psy_1.1.tar.gz'
@@ -218,7 +218,7 @@ Updating HTML index of packages in '.Library'
 
 !!! note "Note"
 
-     As of version 2.0 <b>Rinstall</b> was migrated to <b>.rk.install</b>. <b>Rinstall</b> will be depricated in version 2.1.
+     As of version 2.0 <b>Rinstall</b> was migrated to <b>.r.install</b>. <b>Rinstall</b> will be depricated in version 2.1.
 
 
 Simple examples of embedR are available in [Examples](examples.md) page.

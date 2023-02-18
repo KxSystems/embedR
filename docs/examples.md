@@ -153,6 +153,7 @@ timebucketedpivot:{[startdate; enddate; symbols; timebucket]
 ```
 
 :point_right:
+Knowledge Base: 
 [Pivoting tables](https://code.kx.com/q/kb/pivoting-tables)
 
 An example is:
@@ -295,4 +296,5 @@ q)Rget "date()"
 ```
 
 :point_right:
-Knowledge Base: [Timezones and Daylight Saving Time](https://code.kx.com/q/kb/timezones)
+Knowledge Base: 
+[Timezones and Daylight Saving Time](https://code.kx.com/q/kb/timezones)

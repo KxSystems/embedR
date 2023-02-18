@@ -1,6 +1,6 @@
 # embedR, an interface for calling R from q
 
-*   [Using R with kdb+][r-and-q.md]
+*   [Using R with kdb+](r-and-q.md)
 *   [Examples](examples.md)
 *   [Other methods](other-methods.md)
 
@@ -76,7 +76,7 @@ q)Rcmd["plot(mids$time,mids$mid,type=\"l\",xlab=\"time\",ylab=\"price\")"]
 
 This will produce a plot as shown in Figure 4: 
 
-![Quote mid price plot drawn from q](../../img/r/figure4.svg)  
+![Quote mid price plot drawn from q](img/figure4.svg)  
 _Figure 4: Quote mid price plot drawn from q_
 
 To close the graphics window, use `dev.off()` rather than the close button on the window.

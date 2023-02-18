@@ -1,8 +1,6 @@
 # embedR: Embedding R inside q
 
-
-
-See <https://code.kx.com/v2/interfaces/with-r/#calling-r-from-q>
+A KX [Fusion interface](https://code.kx.com/q/interfaces)
 
 
 ## Installation
@@ -16,7 +14,7 @@ environment     | action
 ----------------|---------------------------------------------------------------------------------------
 Linux           | `tar xzvf embedr_linux-v*.tar.gz -C $QHOME --strip 1`
 macOS           | `tar xzvf embedr_osx-v*.tar.gz -C $QHOME --strip 1`
-Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy R_HOME/x64/*.dll or R_HOME/i386/*.dll to QHOME/w64 or QHOME/w32 respectively. 
+Windows         | Open the archive and copy content of the `embedr` folder (`embedr\*`) to `%QHOME%` or `c:\q`<br/>Copy `R_HOME/x64/*.dll` or `R_HOME/i386/*.dll` to `QHOME/w64` or `QHOME/w32` respectively. 
 
 
 ## Calling R
@@ -66,4 +64,11 @@ Download CSV from the link above and save it in the same folder as `pcd.q` under
 
 <http://data.london.gov.uk/datastore/package/tubenetwork-performance-data>
 
-Left for the reader :)
+Left for the reader :wink:
+
+## Documentation
+
+*    [User guide](docs/README.md)
+*    [Using R with kdb+](docs/r-and-q.md)
+*    [Examples using rkdb/embedR](docs/examples.md)
+*    [Other methods](docs/other-methods.md)

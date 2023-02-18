@@ -1,12 +1,10 @@
----
-title: Examples of using R from q
-description: Examples showing the use of the Fusion interfaces between R and q
-keywords: interface, kdb+, library, q, r
----
-# :fontawesome-brands-r-project: Examples using rkdb/embedR
+# Examples using rkdb/embedR
 
+:point_right:
+rkdb: https://github.com/KxSystems/rkdb
 
-The following examples make use of the Fusion interfaces between q/kdb+ and R and show their versatility.
+The following examples make use of the [Fusion interfaces](https://code.kx.com/q/interfaces#fusion) 
+between q/kdb+ and R and show their versatility.
 
 
 ## Extract aggregated data into R
@@ -127,8 +125,7 @@ We can see that the time to extract the data increases by \~90 ms.
 The q query time increases by 4 ms, so the majority of the increase is due to shipping the larger dataset from q to R.
 
 ```q
-q)\t select time,sym,return
-  from timebucketedstocks[2014.01.09; 2014.01.15; `GOOG`IBM`MSFT; 0D00:00:10]
+q)\t select time,sym,return from timebucketedstocks[2014.01.09; 2014.01.15; `GOOG`IBM`MSFT; 0D00:00:10]
 138
 ```
 
@@ -155,8 +152,8 @@ timebucketedpivot:{[startdate; enddate; symbols; timebucket]
   () xkey 1^exec colheaders#(sym!return) by time:time from data }
 ```
 
-:fontawesome-regular-hand-point-right:
-[Pivoting tables](../../kb/pivoting-tables.md)
+:point_right:
+[Pivoting tables](https://code.kx.com/q/kb/pivoting-tables)
 
 An example is:
 
@@ -236,7 +233,6 @@ This solution executes quickest and with the least network usage, as the resulta
 
 To demonstrate the power of q, an example using randomly-generated smart-meter data has been developed.
 This can be downloaded from
-:fontawesome-brands-github:
 [KxSystems/cookbook/tutorial](https://github.com/KxSystems/cookbook/tree/master/tutorial).
 By following the instructions in the README, an example database can be built.
 The default database contains information on 100,000 smart-meter customers from different sectors and regions over 61 days.
@@ -274,7 +270,7 @@ for each customer type (`res` = residential, `com` = commercial, `ind` = industr
 
 which produces the plot in Figure 5:
 
-![Customer usage profiles generated in q and drawn in R](../../img/r/figure5.png)<br>
+![Customer usage profiles generated in q and drawn in R](img/figure5.png)<br>
 _Figure 5: Customer usage profiles generated in q and drawn in R_
 
 
@@ -298,5 +294,5 @@ q)Rget "date()"
 "Fri Feb  3 01:33:57 2012"
 ```
 
-:fontawesome-regular-hand-point-right:
-Knowledge Base: [Timezones and Daylight Saving Time](../../kb/timezones.md)
+:point_right:
+Knowledge Base: [Timezones and Daylight Saving Time](https://code.kx.com/q/kb/timezones)

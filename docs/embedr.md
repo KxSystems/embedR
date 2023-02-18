@@ -1,17 +1,12 @@
----
-title: embedR, an interface for calling R from q
-author: Conor McCarthy
-date: September 2019
-description: embedR is an interface that allows the R programming language to be invoked by q programs
-keywords: interface, kdb+, q, r, 
----
 # embedR, an interface for calling R from q
 
-:fontawesome-brands-superpowers: [Fusion for kdb+](../fusion.md)
-{: .fusion}
+*   [Using R with kdb+][r-and-q.md]
+*   [Examples](examples.md)
+*   [Other methods](other-methods.md)
 
-:fontawesome-brands-github:
-[kxsystems/embedr](https://github.com/kxsystems/embedr)
+---
+
+A KX [Fusion interface](https://code.kx.com/q/interfaces)
 
 This package is used to invoke R from q for both 32- and 64-bit builds. If the appropriate build is not available on your target system, build instructions are available in the `README.md` for this repository
 
@@ -36,7 +31,7 @@ To find out what that should be, run R from the Bash shell and see the result of
 and then set it accordingly in your environment; e.g. for macOS with a Bash shell
 
 ```bash
-$export R_HOME=/Library/Frameworks/R.framework/Resources
+export R_HOME=/Library/Frameworks/R.framework/Resources
 ```
 
 Optional additional environment variables are `R_SHARE_DIR`, `R_INCLUDE_DIR`, `LD_LIBRARY_PATH` (for libR.so).

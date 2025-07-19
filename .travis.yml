@@ -1,15 +1,8 @@
 language: c
 os:
 - linux
-- osx
 before_install:
-- if [ $TRAVIS_OS_NAME = linux ]; then
-    sudo apt-get install r-base;
-  fi
-- if [ $TRAVIS_OS_NAME = osx ]; then
-    export HOMEBREW_AUTO_UPDATING=0;
-    brew install --build-from-source r;
-  fi
+- sudo apt-get install r-base;
 script:
 - make
 - echo "Preparing version $TRAVIS_BRANCH-$TRAVIS_COMMIT"

@@ -134,6 +134,13 @@ t)flip[`a`b`row.names!(`1`2`1;(enlist "a";enlist"b";enlist"b");1 2 3)]~Rget"data
 t)flip[`a`b`row.names!(`1`2`1;(enlist "a";enlist "b";enlist "b");1 2 3)]~Rget"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"
 t)flip[`a`b`row.names!(`1`2`1;`10`20`30;1 2 3)]~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"
 
+Rset[`tmp;0x0101];
+t)0x0101~Rget`tmp
+Rset["tmp";1];
+t)0x580a000000030004050100030500000000055554462d380000000e000000013ff0000000000000~Rget"serialize(tmp,NULL)"
+Rset["tmp";0x580a0000000300040403000305000000000e414e53495f58332e342d313936380000000e000000013ff0000000000000];
+t)(enlist 1f)~Rget"unserialize(tmp,NULL)"
+
 
 // all {.[Rset;("x";0N!x);"main thread only"~]} peach 2#enlist ([]1 2)
 \\

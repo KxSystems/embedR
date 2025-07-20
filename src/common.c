@@ -300,13 +300,13 @@ static SEXP from_byte_kobject(K x)
 	SEXP result;
 	int i, length = x->n;
 	if (scalar(x)) {
-		PROTECT(result = NEW_INTEGER(1));
-		INTEGER_POINTER(result)[0] = (int) x->g;
+        PROTECT(result = NEW_RAW(1));
+        RAW(result)[0] = (unsigned char) x->g;
 	}
 	else {
-		PROTECT(result = NEW_INTEGER(length));
+        PROTECT(result = NEW_RAW(length));
 		for(i = 0; i < length; i++)
-			INTEGER_POINTER(result)[i] = kG(x)[i];
+            RAW(result)[i] = (unsigned char) kG(x)[i];
 	}
 	UNPROTECT(1);
 	return result;

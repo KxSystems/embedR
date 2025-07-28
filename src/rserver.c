@@ -13,6 +13,8 @@ K rget(K x);
 K rset(K x,K y);
 
 ZK rexec(int type,K x);
+ZK klogicv(J len, int *val);
+ZK klogica(J len, int rank, int *shape, int *val);
 ZK kintv(J len, int *val);
 ZK kinta(J len, int rank, int *shape, int *val);
 ZK kdoublev(J len, double *val);
@@ -177,22 +179,18 @@ ZK from_logical_robject(SEXP sxp)
 {
 	K x;
 	J len = XLENGTH(sxp);
-	int *s = malloc(len*sizeof(int));
-	DO(len,s[i]=LOGICAL_POINTER(sxp)[i]);
-	SEXP dim = GET_DIM(sxp);
+    SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
-		x = kintv(len,s);
-    free(s);
+        x = klogicv(len,LOGICAL(sxp));
 		return attR(x,sxp);
 	}
-	x = kinta(len,length(dim),INTEGER(dim),s);
-	free(s);
-	SEXP dimnames = GET_DIMNAMES(sxp);
+    x = klogica(len,length(dim),INTEGER(dim),LOGICAL(sxp));
+ 	SEXP dimnames= getAttrib(sxp, R_DimNamesSymbol);
 	if (!isNull(dimnames))
 		return attR(x,sxp);
 	SEXP e;
 	PROTECT(e = duplicate(sxp));
-	SET_DIM(e, R_NilValue);
+    setAttrib(e, R_DimSymbol, R_NilValue);
 	x = attR(x,e);
 	UNPROTECT(1);
 	return x;
@@ -297,8 +295,43 @@ static char * getkstring(K x)
 
 /*
  * convert R arrays to K lists
- * done for int, double
+ * done for boolean, int, double
  */
+
+ZK klogicv(J len, int *val) {
+  K x= ktn(KB, len);
+  DO(len, kG(x)[i]= (val)[i]);
+  return x;
+}
+
+ZK klogica(J len, int rank, int *shape, int *val) {
+  K x, y;
+  J i, j, r, c, k;
+  switch(rank) {
+    case 1:
+      x= kintv(len, val);
+      break;
+    case 2:
+      r= shape[0];
+      c= shape[1];
+      x= knk(0);
+      for(i= 0; i < r; i++) {
+        y= ktn(KB, c);
+        for(j= 0; j < c; j++)
+          kG(y)[j]= val[i + r * j];
+        x= jk(&x, y);
+      };
+      break;
+    default:
+      k= rank - 1;
+      r= shape[k];
+      c= len / r;
+      x= knk(0);
+      for(i= 0; i < r; i++)
+        x= jk(&x, klogica(c, k, shape, val + c * i));
+  }
+  return x;
+}
 
 ZK kintv(J len, int *val)
 {

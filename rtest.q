@@ -16,10 +16,6 @@ Rcmd "a=array(1:24,c(2,3,4))"
 t)(2 3 4i)~Rget "dim(a)"
 t)((1 3 5i;2 4 6i);(7 9 11i;8 10 12i);(13 15 17i;14 16 18i);(19 21 23i;20 22 24i))~Rget "a"
 
-Rset["a";2?0Ng];
-a:Rget "a";
-t)(10 10h)~type each a
-
 Rcmd "b= 2 == array(1:24,c(2,3,4))";
 t)(2 3 4i)~Rget "dim(b)"
 
@@ -146,7 +142,7 @@ Rcmd"a=array(1:24,c(2,3,4))";
 t)(2 3 4i)~Rget"dim(a)"
 t)((1 3 5i;2 4 6i);(7 9 11i;8 10 12i);(13 15 17i;14 16 18i);(19 21 23i;20 22 24i))~Rget"a"
 Rset["a";2?0Ng];
-t)not ("84cf32c6-c711-79b4-2f31-6e85923decff";"22371003-8997-eed1-f4df-58fcdedd8376")~Rget"a"  / TODO!!!!!!
+t)(10 10h)~type each Rget"a"
 Rcmd"b= 2 == array(1:24,c(2,3,4))";
 t)(2 3 4i)~Rget"dim(b)"
 t)((000b;100b);(000b;000b);(000b;000b);(000b;000b))~Rget"b"

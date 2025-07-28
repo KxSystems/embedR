@@ -254,9 +254,8 @@ ZK from_character_robject(SEXP sxp)
 		x = kp((char*) CHAR(STRING_ELT(sxp,0)));
 	else {
 		x = ktn(0, length);
-		for (i = 0; i < length; i++) {
-			xK[i] = kp((char*) CHAR(STRING_ELT(sxp,i)));
-		}
+		for (i = 0; i < length; i++)
+			kK(x)[i] = kp((char*) CHAR(STRING_ELT(sxp,i)));
 	}
   return attR(x,sxp);
 }

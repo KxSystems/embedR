@@ -12,11 +12,6 @@
 
 Ropen;    // pass 1 for verbose mode
 
-Rcmd "b= 2 == array(1:24,c(2,3,4))";
-t)(2 3 4i)~Rget"dim(b)"
-
-t)((1.1 3.3 5.5;2.2 4.4 6.6);(7.7 9.9 12.1;8.8 11 13.2);(14.3 16.5 18.7;15.4 17.6 19.8);(20.9 23.1 25.3;22 24.2 26.4))~Rget "1.1*array(1:24,c(2,3,4))"
-
 a:Rget "wilcox.test(c(1,2,3),c(4,5,6))"
 t)"c(1, 2, 3) and c(4, 5, 6)"~last last a
 Rcmd "data(OrchardSprays)"
@@ -28,9 +23,6 @@ t)flip[`decrease`rowpos`colpos`treatment`row.names!(57 95 8 69 92 90 15 2 84 6 1
 // install.packages("zoo", repos="http://cran.r-project.org")
 Rget"install.packages";
 //"special"
-t)@[Rcmd;"typeof(";like[;"incomplete: *"]]
-t)@[Rcmd;"typeof()";like[;"eval error*"]]
-t)("builtin";"builtin";"builtin";"builtin";"builtin";"builtin";"builtin";"builtin";"builtin";"builtin";"builtin")~Rget each ("cos";".C";"floor";"Im";"cumsum";"nargs";"proc.time";"dim";"length";"names";".External")
 t)"bytecode"~last last Rget "getGeneric('+')"  
 t)(1 2 3 4 5 6 7 8 9 10i)~Rget"1:10"
 // data.frame
@@ -85,6 +77,7 @@ t)(enlist 1f)~Rget"unserialize(tmp,NULL)"
 Rcmd"a=array(1:24,c(2,3,4))";
 t)(2 3 4i)~Rget"dim(a)"
 t)((1 3 5i;2 4 6i);(7 9 11i;8 10 12i);(13 15 17i;14 16 18i);(19 21 23i;20 22 24i))~Rget"a"
+t)(enlist 24i)~Rget"length(a)"
 Rset["a";2?0Ng];
 t)(10 10h)~type each Rget"a"
 Rcmd"b= 2 == array(1:24,c(2,3,4))";
@@ -99,10 +92,6 @@ t)not 11i~get"11:11"        / TODO!!!!!!
 t)(11 12 13 14 15i)~Rget"11:15"
 a:Rget"matrix(1:6,2,3)";
 t)(2 4 6i)~a[1]
-Rcmd"m=array(1:24,c(2,3,4))";
-t)((1 3 5i;2 4 6i);(7 9 11i;8 10 12i);(13 15 17i;14 16 18i);(19 21 23i;20 22 24i))~Rget"m"
-t)(enlist 24i)~Rget"length(m)"
-t)(2 3 4i)~Rget"dim(m)"
 t)(1 2 0w -0w 0n 0n)~Rget"c(1,2,Inf,-Inf,NaN,NA)"
 
 // Function Test

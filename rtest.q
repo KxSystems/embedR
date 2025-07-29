@@ -12,10 +12,143 @@
 
 Ropen;    // pass 1 for verbose mode
 
+/ set data type bool
+Rset["a";0b];
+t)"logical"~Rget"class(a)"
+Rset["a";0101b];
+t)"logical"~Rget"class(a)"
+t)4i~first Rget"length(a)"
+
+/ set data type guid
+Rset["a";first 1?0Ng]
+t)"character"~Rget"class(a)"
+Rset["a";first 2?0Ng]
+t)"character"~Rget"class(a)"
+t)36i~first Rget"nchar(a)"
+
+/ set data type byte
+Rset["a";0x01];
+t)"raw"~Rget"class(a)"
+Rset["a";0x0102];
+t)"raw"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type short
+Rset["a";1h];
+t)"integer"~Rget"class(a)"
+Rset["a";1 2h];
+t)"integer"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type int
+Rset["a";1i];
+t)"integer"~Rget"class(a)"
+Rset["a";1 2i];
+t)"integer"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type long
+Rset["a";1];
+t)"numeric"~Rget"class(a)"
+Rset["a";1 2];
+t)"numeric"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type real
+Rset["a";1.1e];
+t)"numeric"~Rget"class(a)"
+Rset["a";1.1 2.2e];
+t)"numeric"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type float
+Rset["a";1.1];
+t)"numeric"~Rget"class(a)"
+Rset["a";1.1 2.2];
+t)"numeric"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type char
+Rset["a";"a"];
+t)"character"~Rget"class(a)"
+Rset["a";"ab"];
+t)"character"~Rget"class(a)"
+t)2i~first Rget"nchar(a)"
+
+/ set data type symbol
+Rset["a";`aa];
+t)"character"~Rget"class(a)"
+Rset["a";`aa`bb];
+t)"character"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type timestamp
+Rset["a";2025.07.26D23:59:59.998999999]
+t)("POSIXt";"POSIXct")~Rget"class(a)"
+Rset["a";2025.07.26D23:59:59.998999999 2025.07.26D23:59:59.998999988]
+t)("POSIXt";"POSIXct")~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type month
+Rset["a";2001.01m]
+t)"integer"~Rget"class(a)"
+Rset["a";2001.01 2001.02m]
+t)"integer"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type date
+Rset["a";2000.01.01]
+t)"Date"~Rget"class(a)"
+Rset["a";2000.01.01 2000.01.02]
+t)"Date"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type datetime (depreciated)
+Rset["a";2025.07.26T00:00:00.000]
+t)("POSIXt";"POSIXct")~Rget"class(a)"
+Rset["a";2025.07.26T00:00:00.001 2025.07.26T00:00:00.002]
+t)("POSIXt";"POSIXct")~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type timespan
+Rset["a";00:00:00.000000001]
+t)"numeric"~Rget"class(a)"
+Rset["a";00:00:00.000000001 00:00:00.000000002]
+t)"numeric"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type minute
+Rset["a";00:01]
+t)"integer"~Rget"class(a)"
+Rset["a";00:01 00:02]
+t)"integer"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type second
+Rset["a";00:00:01]
+t)"integer"~Rget"class(a)"
+Rset["a";00:00:01 00:00:02]
+t)"integer"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type time
+Rset["a";00:00:00.002]
+t)"integer"~Rget"class(a)"
+Rset["a";00:00:00.002 00:00:00.003]
+t)"integer"~Rget"class(a)"
+t)2i~first Rget"length(a)"
+
+/ set data type dict
+Rset["a";(`a`b`c!1 2 3)]
+t)"numeric"~Rget"class(a)"
+
+/ set data type table
+Rset["a";([]a:1 2 3;b:1 2 3)]
+t)"data.frame"~Rget"class(a)"
+
 a:Rget "wilcox.test(c(1,2,3),c(4,5,6))"
 t)"c(1, 2, 3) and c(4, 5, 6)"~last last a
 Rcmd "data(OrchardSprays)"
-\c 100000 1000000
 a:Rget "OrchardSprays"
 t)flip[`decrease`rowpos`colpos`treatment`row.names!(57 95 8 69 92 90 15 2 84 6 127 36 51 2 69 71 87 72 5 39 22 16 72 4 130 4 114 9 20 24 10 51 43 28 60 5 17 7 81 71 12 29 44 77 4 27 47 76 8 72 13 57 4 81 20 61 80 114 39 14 86 55 3 19f;1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8f;1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 6 6 6 6 6 6 6 6 7 7 7 7 7 7 7 7 8 8 8 8 8 8 8 8f;`D`E`B`H`G`F`C`A`C`B`H`D`E`A`F`G`F`H`A`E`D`C`G`B`H`A`E`C`F`G`B`D`E`D`G`A`C`B`H`F`A`C`F`G`B`D`E`H`B`G`C`F`A`H`D`E`G`F`D`B`H`E`A`C;1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64)]~a 
 

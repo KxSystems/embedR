@@ -13,6 +13,8 @@ K rget(K x);
 K rset(K x,K y);
 
 ZK rexec(int type,K x);
+ZK klogicv(J len, int *val);
+ZK klogica(J len, int rank, int *shape, int *val);
 ZK kintv(J len, int *val);
 ZK kinta(J len, int rank, int *shape, int *val);
 ZK kdoublev(J len, double *val);
@@ -177,22 +179,18 @@ ZK from_logical_robject(SEXP sxp)
 {
 	K x;
 	J len = XLENGTH(sxp);
-	int *s = malloc(len*sizeof(int));
-	DO(len,s[i]=LOGICAL_POINTER(sxp)[i]);
-	SEXP dim = GET_DIM(sxp);
+    SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
-		x = kintv(len,s);
-    free(s);
+        x = klogicv(len,LOGICAL(sxp));
 		return attR(x,sxp);
 	}
-	x = kinta(len,length(dim),INTEGER(dim),s);
-	free(s);
-	SEXP dimnames = GET_DIMNAMES(sxp);
+    x = klogica(len,length(dim),INTEGER(dim),LOGICAL(sxp));
+ 	SEXP dimnames= getAttrib(sxp, R_DimNamesSymbol);
 	if (!isNull(dimnames))
 		return attR(x,sxp);
 	SEXP e;
 	PROTECT(e = duplicate(sxp));
-	SET_DIM(e, R_NilValue);
+    setAttrib(e, R_DimSymbol, R_NilValue);
 	x = attR(x,e);
 	UNPROTECT(1);
 	return x;
@@ -256,9 +254,8 @@ ZK from_character_robject(SEXP sxp)
 		x = kp((char*) CHAR(STRING_ELT(sxp,0)));
 	else {
 		x = ktn(0, length);
-		for (i = 0; i < length; i++) {
-			xK[i] = kp((char*) CHAR(STRING_ELT(sxp,i)));
-		}
+		for (i = 0; i < length; i++)
+			kK(x)[i] = kp((char*) CHAR(STRING_ELT(sxp,i)));
 	}
   return attR(x,sxp);
 }
@@ -297,8 +294,43 @@ static char * getkstring(K x)
 
 /*
  * convert R arrays to K lists
- * done for int, double
+ * done for boolean, int, double
  */
+
+ZK klogicv(J len, int *val) {
+  K x= ktn(KB, len);
+  DO(len, kG(x)[i]= (val)[i]);
+  return x;
+}
+
+ZK klogica(J len, int rank, int *shape, int *val) {
+  K x, y;
+  J i, j, r, c, k;
+  switch(rank) {
+    case 1:
+      x= kintv(len, val);
+      break;
+    case 2:
+      r= shape[0];
+      c= shape[1];
+      x= knk(0);
+      for(i= 0; i < r; i++) {
+        y= ktn(KB, c);
+        for(j= 0; j < c; j++)
+          kG(y)[j]= val[i + r * j];
+        x= jk(&x, y);
+      };
+      break;
+    default:
+      k= rank - 1;
+      r= shape[k];
+      c= len / r;
+      x= knk(0);
+      for(i= 0; i < r; i++)
+        x= jk(&x, klogica(c, k, shape, val + c * i));
+  }
+  return x;
+}
 
 ZK kintv(J len, int *val)
 {
@@ -361,7 +393,7 @@ ZK kdoublea(J len, int rank, int *shape, double *val)
 /*
  * The public interface used from Q.
  */
-#ifdef _WIN32
+#ifdef WIN32
 static SOCKET spair[2];
 #else
 static int spair[2];
@@ -370,7 +402,19 @@ void* pingthread;
 
 V* pingmain(V* v){
 	while(1){
-		nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=1000000}, NULL);
+#ifdef WIN32
+        Sleep(100);
+#elif __APPLE__
+        mach_timebase_info_data_t timebase;
+        mach_timebase_info(&timebase);
+        uint64_t nanoseconds = 100000000; 
+        mach_wait_until(mach_absolute_time() + (nanoseconds * timebase.denom / timebase.numer));
+#else
+        struct timespec deadline;
+        deadline.tv_sec = 0;
+        deadline.tv_nsec = 100000000;
+        clock_nanosleep(CLOCK_MONOTONIC, 0, &deadline, NULL);
+#endif
 		send(spair[1], "M", 1, 0);
 	}
 }

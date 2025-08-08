@@ -393,7 +393,7 @@ ZK kdoublea(J len, int rank, int *shape, double *val)
 /*
  * The public interface used from Q.
  */
-#ifdef _WIN32
+#ifdef WIN32
 static SOCKET spair[2];
 #else
 static int spair[2];
@@ -402,7 +402,19 @@ void* pingthread;
 
 V* pingmain(V* v){
 	while(1){
-		nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=1000000}, NULL);
+#ifdef WIN32
+        Sleep(100);
+#elif __APPLE__
+        mach_timebase_info_data_t timebase;
+        mach_timebase_info(&timebase);
+        uint64_t nanoseconds = 100000000; 
+        mach_wait_until(mach_absolute_time() + (nanoseconds * timebase.denom / timebase.numer));
+#else
+        struct timespec deadline;
+        deadline.tv_sec = 0;
+        deadline.tv_nsec = 100000000;
+        clock_nanosleep(CLOCK_MONOTONIC, 0, &deadline, NULL);
+#endif
 		send(spair[1], "M", 1, 0);
 	}
 }

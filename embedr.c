@@ -17,6 +17,10 @@
 #include <windows.h>
 #include <process.h> 
 #endif
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#include <mach/mach.h>
+#endif
 
 #include <R_ext/Parse.h>
 #include "src/socketpair.c"

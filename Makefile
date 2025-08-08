@@ -22,6 +22,9 @@ endif
 R_HOME=$(shell R RHOME)
 R_INCLUDES=$(shell R CMD config --cppflags)
 LIBS=-lpthread -L$(R_HOME)/lib -lR
+ifeq ($(OSFLAG),l)
+LIBS+=-lrt
+endif
 
 SRC=embedr.c
 TGT=$(addsuffix /embedr.so,$(QARCH))

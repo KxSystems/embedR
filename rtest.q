@@ -138,6 +138,110 @@ Rset["a";00:00:00.002 00:00:00.003]
 t)"integer"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
+/ null
+Rset["a";0Ng];         / TODO guid
+t)"0"~first Rget"a"
+Rset["a";("G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661";0Ng;"G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661")];
+t)("8c680a01-5a49-5aab-5a65-d4bfddb6a661";"00000000-0000-0000-0000-000000000000";"8c680a01-5a49-5aab-5a65-d4bfddb6a661")~Rget"a"
+Rset["a";0Nh];         / TODO short
+t)-32768i~first Rget"a"
+Rset["a";0 0N 2h];
+t)(0 -32768 2i)~Rget"a"
+Rset["a";0Ni];         / int
+t)0Ni~first Rget"a"
+Rset["a";1 0N 2i];
+t)(1 0N 2i)~Rget"a"
+Rset["a";0Ne];         / TODO real
+t)0Nf~first Rget"a"
+Rset["a";0 0N 2e];
+t)(0 0N 2f)~Rget"a"
+Rset["a";0Nf];         / float
+t)0Nf~first Rget"a"
+Rset["a";1 0N 2f];
+t)(1 0N 2f)~Rget"a"
+Rset["a";0Np];       / TODO timestamp
+t)(12h$9223372036854774784)~first Rget"a"
+Rset["a";2025.07.26D23:59:59.998999999 0N 2025.07.26D23:59:59.998999999];
+t)(2025.07.26D23:59:59.999000064;(12h$9223372036854774784);2025.07.26D23:59:59.999000064)~Rget"a"
+Rset["a";0Nm];         / TODO month
+t)0Ni~first Rget"a"
+Rset["a";2001.01 0N 2001.02m];
+t)(12 0N 13i)~Rget"a"
+Rset["a";0Nd];         / date
+t)0Nd~first Rget"a"
+Rset["a";2000.01.01 0N 2000.01.02];
+t)(2000.01.01 0N 2000.01.02)~Rget"a"
+Rset["a";0Nz];         / TODO datetime
+t)0Np~first Rget"a"
+Rset["a";2025.07.26T00:00:00.000 0N 2025.07.26T00:00:00.001];
+t)(2025.07.26D00:00:00.000000000 0N 2025.07.26D00:00:00.001000192)~Rget"a"
+Rset["a";0Nn];         / TODO timespan
+/ t)(-9.223372e+09)~first Rget"a"
+Rset["a";00:00:00.000000001 0N 00:00:00.000000002];
+/ t)Rget"a"
+Rset["a";0Nu];         / TODO minute
+t)0Ni~first Rget"a"
+Rset["a";00:01 0N 00:02];
+t)(1 0N 2i)~Rget"a"
+Rset["a";0Nv];         / TODO second
+t)0Ni~first Rget"a"
+Rset["a";00:00:01 0N 00:00:02];
+t)(1 0N 2i)~Rget"a"
+Rset["a";0Nt];         / TODO time
+t)0Ni~first Rget"a"
+Rset["a";00:00:00.002 0N 00:00:00.003];
+t)(2 0N 3i)~Rget"a"
+
+/ inf
+Rset["a";0Wh];        / TODO short
+t)32767i~first Rget"a"
+Rset["a";0 0W 2h];
+t)(0 32767 2i)~Rget"a"
+Rset["a";0Wi];        / int
+t)0Wi~first Rget"a"
+Rset["a";1 0W 2i];
+t)(1 0W 2i)~Rget"a"
+Rset["a";0We];        / TODO real
+t)0w~first Rget"a"
+Rset["a";0 0W 2e];
+t)(0 0W 2f)~Rget"a"
+Rset["a";0w];         / float
+t)0w~first Rget"a"
+Rset["a";1 0W 2f];
+t)(1 0W 2f)~Rget"a"
+Rset["a";0Wp];        / TODO timestamp
+t)2262.04.11D23:47:16.854775807~first Rget"a"
+Rset["a";2025.07.26D23:59:59.998999999 0W 2025.07.26D23:59:59.998999999];
+t)(2025.07.26D23:59:59.999000064;2262.04.11D23:47:16.854775807;2025.07.26D23:59:59.999000064)~Rget"a"
+Rset["a";0Wm];        / TODO month
+t)0Wi~first Rget"a"
+Rset["a";2001.01 0W 2001.02m];
+t)(12 0W 13i)~Rget"a"
+Rset["a";0Wd];        / date
+t)0Wd~first Rget"a"
+Rset["a";2000.01.01 0W 2000.01.02];
+t)(2000.01.01 0W 2000.01.02)~Rget"a"
+Rset["a";0Wz];        / TODO datetime
+t)2262.04.11D23:47:16.854775807~first Rget"a"
+Rset["a";2025.07.26T00:00:00.000 0W 2025.07.26T00:00:00.001];
+t)(2025.07.26D00:00:00.000000000 2262.04.11D23:47:16.854775807 2025.07.26D00:00:00.001000192)~Rget"a"
+Rset["a";0Wn];        / TODO timespan
+/ t)(9.223372e+09)~first Rget"a"
+Rset["a";00:00:00.000000001 0W 00:00:00.000000002];
+/ t)Rget"a"
+Rset["a";0Wu];        / TODO minute
+t)0Wi~first Rget"a"
+Rset["a";00:01 0W 00:02];
+t)(1 0W 2i)~Rget"a"
+Rset["a";0Wv];        / TODO second
+t)0Wi~first Rget"a"
+Rset["a";00:00:01 0W 00:00:02];
+t)(1 0W 2i)~Rget"a"
+Rset["a";0Wt];        / TODO time
+t)0Wi~first Rget"a"
+Rset["a";00:00:00.002 0W 00:00:00.003];
+t)(2 0W 3i)~Rget"a"
+
 / set data type dict
 Rset["a";(`a`b`c!1 2 3)]
 t)"numeric"~Rget"class(a)"

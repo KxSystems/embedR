@@ -225,6 +225,31 @@ ZK from_double_robject(SEXP sxp)
 {
 	K x;
 	J len = XLENGTH(sxp);
+
+    /* Check if this is an integer64 object from bit64 package */
+    SEXP class_attr = getAttrib(sxp, R_ClassSymbol);
+    int is_integer64 = 0;
+    if (!isNull(class_attr) && TYPEOF(class_attr) == STRSXP && LENGTH(class_attr) > 0) {
+        const char *class_name = CHAR(STRING_ELT(class_attr, 0));
+        if (strcmp(class_name, "integer64") == 0) {
+            is_integer64 = 1;
+        }
+    }
+
+    /* If integer64, convert to KDB long vector */
+    if (is_integer64) {
+        SEXP dim = GET_DIM(sxp);
+        if (isNull(dim)) {
+            x = ktn(KJ, len);
+            DO(len,kJ(x)[i]=INT64(sxp)[i])
+            return x;  // Don't attach R attributes for integer64
+        }
+        /* For arrays with dimensions - not commonly used with integer64 */
+        x = ktn(KJ, len);
+        DO(len,kJ(x)[i]=INT64(sxp)[i])
+        return x;  // Don't attach R attributes for integer64
+    }
+
 	double *s = malloc(len*sizeof(double));
 	DO(len,s[i]=REAL(sxp)[i]);
 	SEXP dim = GET_DIM(sxp);

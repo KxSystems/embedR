@@ -4,6 +4,10 @@
 
 int kx_connection=0;
 
+/* Custom type constant for integer64 (bit64 package) */
+#define INT64SXP 64
+#define INT64(x) ((J*) NUMERIC_POINTER(x))
+
 /*
  * A (readable type name, R data type number) pair.
  */
@@ -78,6 +82,14 @@ SEXP make_named_list(char **names, SEXPTYPE *types, Sint *lengths, Sint n)
 		case REALSXP:
 			PROTECT(object = NEW_NUMERIC(elements));
 			break;
+        case INT64SXP:
+        {
+            PROTECT(object = NEW_NUMERIC(elements));
+            SEXP cls = PROTECT(mkString("integer64"));
+            classgets(object, cls);
+            UNPROTECT(1); // Unprotect class_name, keep object protected
+            break;
+        }
 		case STRSXP:
 			PROTECT(object = NEW_CHARACTER(elements));
 			break;
@@ -372,19 +384,18 @@ static SEXP from_int_kobject(K x)
 
 static SEXP from_long_kobject(K x)
 {
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = (double) x->j;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = (double) xJ[i];
-	}
-	UNPROTECT(1);
-	return result;
+    SEXP result;
+    J i,n=scalar(x)?1:x->n;
+    PROTECT(result = allocVector(REALSXP,n));
+    if(scalar(x))
+        INT64(result)[0]= x->j;
+    else
+        for(i = 0; i < n; i++)
+            INT64(result)[i]= kJ(x)[i];
+    SEXP cls = PROTECT(mkString("integer64"));
+    classgets(result, cls);
+    UNPROTECT(2);
+    return result;
 }
 
 static SEXP from_float_kobject(K x)

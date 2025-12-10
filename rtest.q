@@ -49,9 +49,9 @@ t)2i~first Rget"length(a)"
 
 / set data type long
 Rset["a";1];
-t)"numeric"~Rget"class(a)"
+t)"integer64"~Rget"class(a)"
 Rset["a";1 2];
-t)"numeric"~Rget"class(a)"
+t)"integer64"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
 / set data type real
@@ -151,6 +151,10 @@ Rset["a";0Ni];         / int
 t)0Ni~first Rget"a"
 Rset["a";1 0N 2i];
 t)(1 0N 2i)~Rget"a"
+Rset["a";0N];         / long
+t)0N~first Rget"a"
+Rset["a";1 0N 2];
+t)(1 0N 2)~Rget"a"
 Rset["a";0Ne];         / TODO real
 t)0Nf~first Rget"a"
 Rset["a";0 0N 2e];
@@ -201,6 +205,10 @@ Rset["a";0Wi];        / int
 t)0Wi~first Rget"a"
 Rset["a";1 0W 2i];
 t)(1 0W 2i)~Rget"a"
+Rset["a";0W];        / long
+t)0W~first Rget"a"
+Rset["a";1 0W 2];
+t)(1 0W 2)~Rget"a"
 Rset["a";0We];        / TODO real
 t)0w~first Rget"a"
 Rset["a";0 0W 2e];
@@ -244,7 +252,7 @@ t)(2 0W 3i)~Rget"a"
 
 / set data type dict
 Rset["a";(`a`b`c!1 2 3)]
-t)"numeric"~Rget"class(a)"
+t)"integer64"~Rget"class(a)"
 
 / set data type table
 Rset["a";([]a:1 2 3;b:1 2 3)]
@@ -301,7 +309,7 @@ t)flip[`a`b`row.names!(`1`2`1;`10`20`30;1 2 3)]~Rget"data.table(a=as.factor(c(1,
 
 Rset[`tmp;0x0101];
 t)0x0101~Rget`tmp
-Rset["tmp";1];
+Rset["tmp";1f];
 t)0x580a000000030004050100030500000000055554462d380000000e000000013ff0000000000000~Rget"serialize(tmp,NULL)"
 Rset["tmp";0x580a0000000300040403000305000000000e414e53495f58332e342d313936380000000e000000013ff0000000000000];
 t)(enlist 1f)~Rget"unserialize(tmp,NULL)"
@@ -434,7 +442,7 @@ t)(Rget"NULL")~Rget["c()"]
 t)()~Rget"c()"
 t)(111111b)~{@[Rget;x;"type"~]}each (.z.p;0b;1;1f;{};([1 2 3]1 2 3))
 Rset[`x;1];
-t)(enlist 1f;enlist 1f;enlist 1f;enlist 1f)~Rget each ("x";enlist "x";`x;`x`x)
+t)(enlist 1;enlist 1;enlist 1;enlist 1)~Rget each ("x";enlist "x";`x;`x`x)
 
 // General Test
 Rcmd"a<-data.frame(a=c(1,2))"

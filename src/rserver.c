@@ -237,19 +237,21 @@ ZK from_double_robject(SEXP sxp)
     I bit64=isClass("integer64",sxp);
 	J len = XLENGTH(sxp);
     SEXP dim = GET_DIM(sxp);
-
-    /* If integer64, convert to KDB long vector */
-    if (bit64) {
-        if (isNull(dim))
+    if (isNull(dim)) {
+        if (bit64)
             return klongv(len,(J*)REAL(sxp));
+        if (isClass("nanotime",sxp)){
+            x=ktn(KP,len);
+            DO(len,kJ(x)[i]=INT64(sxp)[i]-(INT64(sxp)[i]==nj?0:epoch_offset))
+            return x;
+        }
+        x = kdoublev(len,REAL(sxp));
+        return attR(x,sxp);
+    }
+    if (bit64) {
         /* For arrays with dimensions - not commonly used with integer64 */
         return klonga(len, length(dim), INTEGER(dim), (J*)REAL(sxp));  // Don't attach R attributes for integer64
     }
-
-	if (isNull(dim)) {
-		x = kdoublev(len,REAL(sxp));
-		return attR(x,sxp);
-	}
 	x = kdoublea(len,length(dim),INTEGER(dim),REAL(sxp));
 	SEXP dimnames = GET_DIMNAMES(sxp);
 	if (!isNull(dimnames))
@@ -404,7 +406,7 @@ ZK klonga(J len, int rank, int *shape, J*val) {
     k= rank - 1;
     r= shape[k];
     c= len / r;
-    x= ktn(0,r);
+    x= knk(0);
     for(i= 0; i < r; i++)
       kK(x)[i] = klonga(c, k, shape, val + c * i);
   }

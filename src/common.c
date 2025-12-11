@@ -4,6 +4,8 @@
 
 int kx_connection=0;
 
+Z const J epoch_offset=10957*24*60*60*1000000000LL;
+
 /* Custom type constant for integer64 (bit64 package) */
 #define INT64SXP 64
 #define INT64(x) ((J*) NUMERIC_POINTER(x))
@@ -126,7 +128,7 @@ void make_data_frame(SEXP data)
   UNPROTECT(3);
 }
 
-/* for datetime, timestamp */
+/* for datetime */
 static void setdatetimeclass(SEXP sxp)
 {
 	SEXP datetimeclass = PROTECT(allocVector(STRSXP,2));
@@ -134,6 +136,22 @@ static void setdatetimeclass(SEXP sxp)
 	SET_STRING_ELT(datetimeclass, 1, mkChar("POSIXct"));
 	setAttrib(sxp, R_ClassSymbol, datetimeclass);
 	UNPROTECT(2);
+}
+
+/* for timestamp */
+static SEXP settimestampclass(SEXP sxp) {
+  SEXP classValue;
+  SEXP tag = PROTECT(mkString(".S3Class"));
+  SEXP val = PROTECT(mkString("integer64"));
+  setAttrib(sxp, tag, val);
+  UNPROTECT(2);
+  classValue= PROTECT(mkString("nanotime"));
+  tag = PROTECT(mkString("package"));
+  val = PROTECT(mkString("nanotime"));
+  setAttrib(classValue, tag, val);
+  classgets(sxp, classValue);
+  UNPROTECT(3);
+  return asS4(sxp,TRUE,0);
 }
 
 /**
@@ -552,21 +570,15 @@ static SEXP from_timespan_kobject(K x)
 	return result;
 }
 
-static SEXP from_timestamp_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = 946684800 + x->j / 1e9;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-  		NUMERIC_POINTER(result)[i] = 946684800 + kJ(x)[i] / 1e9;
-	}
-	setdatetimeclass(result);
-	return result;
+static SEXP from_timestamp_kobject(K x) {
+  SEXP result=from_long_kobject(x);
+  long n=XLENGTH(result);
+  PROTECT(result);
+  for(int i= 0; i < n; i++)
+    if(INT64(result)[i]!=nj)INT64(result)[i]+=epoch_offset;
+  settimestampclass(result);
+  UNPROTECT(1);
+  return result;
 }
 
 static SEXP from_dictionary_kobject(K x)

@@ -17,6 +17,8 @@ ZK klogicv(J len, int *val);
 ZK klogica(J len, int rank, int *shape, int *val);
 ZK kintv(J len, int *val);
 ZK kinta(J len, int rank, int *shape, int *val);
+ZK klongv(J len, J*val);
+ZK klonga(J len, int rank, int *shape, J*val);
 ZK kdoublev(J len, double *val);
 ZK kdoublea(J len, int rank, int *shape, double *val);
 ZK from_any_robject(SEXP sxp);
@@ -239,15 +241,10 @@ ZK from_double_robject(SEXP sxp)
     /* If integer64, convert to KDB long vector */
     if (is_integer64) {
         SEXP dim = GET_DIM(sxp);
-        if (isNull(dim)) {
-            x = ktn(KJ, len);
-            DO(len,kJ(x)[i]=INT64(sxp)[i])
-            return x;  // Don't attach R attributes for integer64
-        }
+        if (isNull(dim))
+            return klongv(len,(J*)REAL(sxp));
         /* For arrays with dimensions - not commonly used with integer64 */
-        x = ktn(KJ, len);
-        DO(len,kJ(x)[i]=INT64(sxp)[i])
-        return x;  // Don't attach R attributes for integer64
+        return klonga(len, length(dim), INTEGER(dim), (J*)REAL(sxp));  // Don't attach R attributes for integer64
     }
 
 	double *s = malloc(len*sizeof(double));
@@ -384,6 +381,40 @@ ZK kinta(J len, int rank, int *shape, int *val)
 				x = jk(&x,kinta(c,k,shape,val+c*i));
 	}
 	return x;
+}
+
+ZK klongv(J len, J*val)
+{
+    K x = ktn(KJ, len);
+    DO(len,kJ(x)[i]=(val)[i]);
+    return x;
+}
+
+ZK klonga(J len, int rank, int *shape, J*val) {
+  K x, y;
+  J i, j, r, c, k;
+  switch(rank) {
+  case 1:
+    x=klongv(len,val);
+    break;
+  case 2:
+    r= shape[0]; c= shape[1]; x= ktn(0,r);
+    for(i= 0; i < r; i++) {
+      y= ktn(KJ, c);
+      for(j= 0; j < c; j++)
+        kJ(y)[j]= val[i + r * j];
+      kK(x)[i]=y;
+    };
+    break;
+  default:
+    k= rank - 1;
+    r= shape[k];
+    c= len / r;
+    x= ktn(0,r);
+    for(i= 0; i < r; i++)
+      kK(x)[i] = klonga(c, k, shape, val + c * i);
+  }
+  return x;
 }
 
 ZK kdoublev(J len, double *val)

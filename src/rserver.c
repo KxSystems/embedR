@@ -202,16 +202,12 @@ ZK from_integer_robject(SEXP sxp)
 {
 	K x;
 	J len = XLENGTH(sxp);
-	int *s = malloc(len*sizeof(int));
-	DO(len,s[i]=INTEGER_POINTER(sxp)[i]);
 	SEXP dim = GET_DIM(sxp);
 	if (isNull(dim)) {
-		x = kintv(len,s);
-    free(s);
+		x = kintv(len,INTEGER(sxp));
 		return attR(x,sxp);
 	}
-	x = kinta(len,length(dim),INTEGER(dim),s);
-  free(s);
+	x = kinta(len,length(dim),INTEGER(dim),INTEGER(sxp));
 	SEXP dimnames = GET_DIMNAMES(sxp);
 	if (!isNull(dimnames))
 		return attR(x,sxp);

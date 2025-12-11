@@ -139,8 +139,8 @@ t)"integer"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
 / null
-Rset["a";0Ng];         / TODO guid
-t)"0"~first Rget"a"
+Rset["a";0Ng];         / guid
+t)"00000000-0000-0000-0000-000000000000"~Rget"a"
 Rset["a";("G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661";0Ng;"G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661")];
 t)("8c680a01-5a49-5aab-5a65-d4bfddb6a661";"00000000-0000-0000-0000-000000000000";"8c680a01-5a49-5aab-5a65-d4bfddb6a661")~Rget"a"
 Rset["a";0Nh];         / TODO short

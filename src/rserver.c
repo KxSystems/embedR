@@ -45,6 +45,18 @@ ZK from_vector_robject(SEXP);
 ZK from_raw_robject(SEXP sxp);
 ZK from_nyi_robject(S m,SEXP sxp);
 
+Rboolean isClass(const char *class_, SEXP s) {
+  SEXP klass;
+  int i;
+  if(OBJECT(s)) {
+    klass= getAttrib(s, R_ClassSymbol);
+    for(i= 0; i < length(klass); i++)
+      if(!strcmp(CHAR(STRING_ELT(klass, i)), class_))
+        return TRUE;
+  }
+  return FALSE;
+}
+
 ZK from_any_robject(SEXP sxp)
 {
 	K result = 0;
@@ -222,21 +234,12 @@ ZK from_integer_robject(SEXP sxp)
 ZK from_double_robject(SEXP sxp)
 {
 	K x;
+    I bit64=isClass("integer64",sxp);
 	J len = XLENGTH(sxp);
     SEXP dim = GET_DIM(sxp);
 
-    /* Check if this is an integer64 object from bit64 package */
-    SEXP class_attr = getAttrib(sxp, R_ClassSymbol);
-    int is_integer64 = 0;
-    if (!isNull(class_attr) && TYPEOF(class_attr) == STRSXP && LENGTH(class_attr) > 0) {
-        const char *class_name = CHAR(STRING_ELT(class_attr, 0));
-        if (strcmp(class_name, "integer64") == 0) {
-            is_integer64 = 1;
-        }
-    }
-
     /* If integer64, convert to KDB long vector */
-    if (is_integer64) {
+    if (bit64) {
         if (isNull(dim))
             return klongv(len,(J*)REAL(sxp));
         /* For arrays with dimensions - not commonly used with integer64 */

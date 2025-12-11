@@ -227,6 +227,7 @@ ZK from_double_robject(SEXP sxp)
 {
 	K x;
 	J len = XLENGTH(sxp);
+    SEXP dim = GET_DIM(sxp);
 
     /* Check if this is an integer64 object from bit64 package */
     SEXP class_attr = getAttrib(sxp, R_ClassSymbol);
@@ -240,23 +241,17 @@ ZK from_double_robject(SEXP sxp)
 
     /* If integer64, convert to KDB long vector */
     if (is_integer64) {
-        SEXP dim = GET_DIM(sxp);
         if (isNull(dim))
             return klongv(len,(J*)REAL(sxp));
         /* For arrays with dimensions - not commonly used with integer64 */
         return klonga(len, length(dim), INTEGER(dim), (J*)REAL(sxp));  // Don't attach R attributes for integer64
     }
 
-	double *s = malloc(len*sizeof(double));
-	DO(len,s[i]=REAL(sxp)[i]);
-	SEXP dim = GET_DIM(sxp);
 	if (isNull(dim)) {
-		x = kdoublev(len,s);
-		free(s);
+		x = kdoublev(len,REAL(sxp));
 		return attR(x,sxp);
 	}
-	x = kdoublea(len,length(dim),INTEGER(dim),s);
-	free(s);
+	x = kdoublea(len,length(dim),INTEGER(dim),REAL(sxp));
 	SEXP dimnames = GET_DIMNAMES(sxp);
 	if (!isNull(dimnames))
 		return attR(x,sxp);

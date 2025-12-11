@@ -84,10 +84,9 @@ t)2i~first Rget"length(a)"
 
 / set data type timestamp
 Rset["a";2025.07.26D23:59:59.998999999]
-t)("POSIXt";"POSIXct")~Rget"class(a)"
+t)"nanotime"~last Rget"class(a)"
 Rset["a";2025.07.26D23:59:59.998999999 2025.07.26D23:59:59.998999988]
-t)("POSIXt";"POSIXct")~Rget"class(a)"
-t)2i~first Rget"length(a)"
+t)"nanotime"~last Rget"class(a)"
 
 / set data type month
 Rset["a";2001.01m]
@@ -163,10 +162,10 @@ Rset["a";0Nf];         / float
 t)0Nf~first Rget"a"
 Rset["a";1 0N 2f];
 t)(1 0N 2f)~Rget"a"
-Rset["a";0Np];       / TODO timestamp
-t)(12h$9223372036854774784)~first Rget"a"
+Rset["a";0Np];         / timestamp
+t)0Np~first Rget"a"
 Rset["a";2025.07.26D23:59:59.998999999 0N 2025.07.26D23:59:59.998999999];
-t)(2025.07.26D23:59:59.999000064;(12h$9223372036854774784);2025.07.26D23:59:59.999000064)~Rget"a"
+t)(2025.07.26D23:59:59.998999999;0Np;2025.07.26D23:59:59.998999999)~Rget"a"
 Rset["a";0Nm];         / TODO month
 t)0Ni~first Rget"a"
 Rset["a";2001.01 0N 2001.02m];
@@ -217,10 +216,10 @@ Rset["a";0w];         / float
 t)0w~first Rget"a"
 Rset["a";1 0W 2f];
 t)(1 0W 2f)~Rget"a"
-Rset["a";0Wp];        / TODO timestamp
-t)2262.04.11D23:47:16.854775807~first Rget"a"
+Rset["a";0Wp];        / timestamp
+t)0Wp~first Rget"a"
 Rset["a";2025.07.26D23:59:59.998999999 0W 2025.07.26D23:59:59.998999999];
-t)(2025.07.26D23:59:59.999000064;2262.04.11D23:47:16.854775807;2025.07.26D23:59:59.999000064)~Rget"a"
+t)(2025.07.26D23:59:59.998999999 0W 2025.07.26D23:59:59.998999999)~Rget"a"
 Rset["a";0Wm];        / TODO month
 t)0Wi~first Rget"a"
 Rset["a";2001.01 0W 2001.02m];
@@ -382,7 +381,7 @@ t)not (`a`b`c!(2020.04.13D06:08:03.712336000; 2020.04.13D06:08:03.712336001; 202
 
 // timestamp
 Rset["tmstp"; 2020.03.16D17:30:45.123456789];
-t)not (enlist 2020.03.16D17:30:45.123456789)~Rget"tmstp" / TODO !!!!!!!
+t)(enlist 2020.03.16D17:30:45.123456789)~Rget"tmstp"
 
 // month 
 Rset["mnth"; `month$/:2020.04.02 2010.01.29];

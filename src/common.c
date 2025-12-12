@@ -4,7 +4,8 @@
 
 int kx_connection=0;
 
-Z const J epoch_offset=10957*24*60*60*1000000000LL;
+Z const int kdbDateOffset = 10957;
+Z const J epoch_offset=kdbDateOffset*24*60*60*1000000000LL;
 
 /* Custom type constant for integer64 (bit64 package) */
 #define INT64SXP 64
@@ -63,6 +64,15 @@ static SEXP settimestampclass(SEXP sxp) {
     SEXP ans = PROTECT(asS4(sxp, TRUE, 0));
     UNPROTECT(4); 
     return ans;
+}
+
+/* for date */
+static SEXP setdateclass(SEXP sxp) {
+  SEXP timeclass= PROTECT(allocVector(STRSXP, 1));
+  SET_STRING_ELT(timeclass, 0, mkChar("Date"));
+  classgets(sxp, timeclass);
+  UNPROTECT(1);
+  return sxp;
 }
 
 /*
@@ -332,52 +342,43 @@ static SEXP from_long_kobject(K x)
  */
 static SEXP from_float_kobject(K x)
 {
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = (double) x->e;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = (double) xE[i];
-	}
-	UNPROTECT(1);
-	return result;
+    SEXP result;
+    if(scalar(x)) return ScalarReal(ISNAN(x->e)?R_NaN:x->e);
+    PROTECT(result= allocVector(REALSXP,x->n));
+    for(int i= 0; i < x->n; i++)
+        REAL(result)[i]= (double) ISNAN(kE(x)[i])?R_NaN:kE(x)[i];
+    UNPROTECT(1);
+    return result;
 }
 
+/**
+ * Create numeric R type from kdb float (atom and vector)
+ */
 static SEXP from_double_kobject(K x)
 {
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = x->f;
-	}
-	else {
-		PROTECT(result = NEW_NUMERIC(length));
-		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = xF[i];
-	}
-	UNPROTECT(1);
-	return result;
+    SEXP result;
+  if(scalar(x)) return ScalarReal(ISNAN(x->f)?R_NaN:x->f);
+  PROTECT(result= allocVector(REALSXP,x->n));
+  for(int i= 0; i < x->n; i++)
+    REAL(result)[i]= ISNAN(kF(x)[i])?R_NaN:kF(x)[i];
+  UNPROTECT(1);
+  return result;
 }
 
+/** 
+ * Create character R type from kdb char vector
+ */ 
 static SEXP from_string_kobject(K x)
 {
-	SEXP result;
-	int length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_CHARACTER(1));
-		SET_STRING_ELT(result, 0, mkCharLen((S)&x->g,1));
-	}
-	else {
-		PROTECT(result = allocVector(STRSXP, 1));
-		SET_STRING_ELT(result, 0, mkCharLen((S)xG,length));
-	};
-	UNPROTECT(1);
-	return result;
+    SEXP result;
+    long n=scalar(x)?1:x->n;
+    PROTECT(result= allocVector(STRSXP,1));
+    if(scalar(x))
+        SET_STRING_ELT(result, 0, mkCharLen((S) &x->g, 1));
+    else
+        SET_STRING_ELT(result, 0, mkCharLen((S) kC(x), n));
+    UNPROTECT(1);
+    return result;
 }
 
 static SEXP from_string_column_kobject(K x)
@@ -392,47 +393,40 @@ static SEXP from_string_column_kobject(K x)
   return result;
 }
 
+/**
+ * Create character R type from kdb symbol (atom and vector)
+ */
 static SEXP from_symbol_kobject(K x)
 {
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_CHARACTER(1));
-		SET_STRING_ELT(result, 0, mkChar(xs));
-	}
-	else {
-		PROTECT(result = NEW_CHARACTER(length));
-		for(i = 0; i < length; i++)
-			SET_STRING_ELT(result, i, mkChar((S)xS[i]));
-	}
-	UNPROTECT(1);
-	return result;
+    SEXP result;
+    if(scalar(x)) return mkString(x->s);
+    PROTECT(result= allocVector(STRSXP,x->n));
+    for(int i= 0; i < x->n; i++)
+        SET_STRING_ELT(result, i, mkChar(kS(x)[i]));
+    UNPROTECT(1);
+    return result;
 }
 
+/**
+ * Create integer R type from kdb month (atom and vector)
+ */
 static SEXP from_month_kobject(K object)
 {
 	return from_int_kobject(object);
 }
 
+/**
+ * Create date R type from kdb date (atom and vector)
+ */
 static SEXP from_date_kobject(K x)
 {
-  SEXP result;
-  SEXP dateclass;
-  int i, length = x->n;
-  if (scalar(x)) {
-    PROTECT(result = NEW_INTEGER(1));
-    INTEGER_POINTER(result)[0] = x->i + 10957;
-  }
-	else {
-		PROTECT(result = NEW_INTEGER(length));
-		for(i = 0; i < length; i++)
-		INTEGER_POINTER(result)[i] = (int) xI[i] + 10957;
-  }
-  dateclass = PROTECT(allocVector(STRSXP,1));
-	SET_STRING_ELT(dateclass, 0, mkChar("Date"));
-	setAttrib(result, R_ClassSymbol, dateclass);
-	UNPROTECT(2);
-	return result;
+    SEXP result=PROTECT(from_int_kobject(x));
+    for(int i= 0; i < XLENGTH(result); i++)
+        if(INTEGER(result)[i]!=NA_INTEGER)
+            INTEGER(result)[i]+=kdbDateOffset;
+    setdateclass(result);
+    UNPROTECT(1);
+    return result;
 }
 
 static SEXP from_datetime_kobject(K x)
@@ -441,12 +435,12 @@ static SEXP from_datetime_kobject(K x)
 	int i, length = x->n;
 	if (scalar(x)) {
 		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = (x->f + 10957) * 86400;
+		NUMERIC_POINTER(result)[0] = (x->f + kdbDateOffset) * 86400;
 	}
 	else {
 		PROTECT(result = NEW_NUMERIC(length));
 		for(i = 0; i < length; i++)
-			NUMERIC_POINTER(result)[i] = (kF(x)[i] + 10957) * 86400;
+			NUMERIC_POINTER(result)[i] = (kF(x)[i] + kdbDateOffset) * 86400;
 	}
     setdatetimeclass(result);
 	return result;

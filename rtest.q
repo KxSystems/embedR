@@ -154,7 +154,7 @@ Rset["a";0N];         / long
 t)0N~first Rget"a"
 Rset["a";1 0N 2];
 t)(1 0N 2)~Rget"a"
-Rset["a";0Ne];         / TODO real
+Rset["a";0Ne];         / real
 t)0Nf~first Rget"a"
 Rset["a";0 0N 2e];
 t)(0 0N 2f)~Rget"a"
@@ -208,7 +208,7 @@ Rset["a";0W];        / long
 t)0W~first Rget"a"
 Rset["a";1 0W 2];
 t)(1 0W 2)~Rget"a"
-Rset["a";0We];        / TODO real
+Rset["a";0We];        / real
 t)0w~first Rget"a"
 Rset["a";0 0W 2e];
 t)(0 0W 2f)~Rget"a"

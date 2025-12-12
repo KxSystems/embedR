@@ -11,105 +11,6 @@ Z const J epoch_offset=10957*24*60*60*1000000000LL;
 #define INT64(x) ((J*) NUMERIC_POINTER(x))
 
 /*
- * A (readable type name, R data type number) pair.
- */
-struct data_types {
-    char *name;
-    Sint id;
-};
-
-/*
- * A mapping from readable names to R data type numbers.
- */
-const struct data_types r_data_types[] = {
-	{"unknown", -1},
-	{"NULL", NILSXP},
-	{"symbol", SYMSXP},
-	{"pairlist", LISTSXP},
-	{"closure", CLOSXP},
-	{"environment", ENVSXP},
-	{"promise", PROMSXP},
-	{"language", LANGSXP},
-	{"special", SPECIALSXP},
-	{"builtin", BUILTINSXP},
-	{"char", CHARSXP},
-	{"logical", LGLSXP},
-	{"integer", INTSXP},
-	{"double", REALSXP},
-	{"complex", CPLXSXP},
-	{"character", STRSXP},
-	{"...", DOTSXP},
-	{"any", ANYSXP},
-	{"expression", EXPRSXP},
-	{"list", VECSXP},
-	{"numeric", REALSXP},
-	{"name", SYMSXP},
-	{0, -1}
-};
-
-/*
- * Brute force search of R type table.
- * eg. 	get_type_name(LISTSXP)
- */
-char* get_type_name(Sint type)
-{
-	int i;
-	for (i = 1; r_data_types[i].name != 0; i++) {
-		if (type == r_data_types[i].id)
-			return r_data_types[i].name;
-	}
-	return r_data_types[0].name;
-}
-
-/*
- * Given the appropriate names, types, and lengths, create an R named list.
- */
-SEXP make_named_list(char **names, SEXPTYPE *types, Sint *lengths, Sint n)
-{
-	SEXP output, output_names, object = NULL_USER_OBJECT;
-	Sint elements; int i;
-
-	PROTECT(output = NEW_LIST(n));
-	PROTECT(output_names = NEW_CHARACTER(n));
-
-	for(i = 0; i < n; i++){
-		elements = lengths[i];
-		switch((int)types[i]) {
-		case LGLSXP:
-			PROTECT(object = NEW_LOGICAL(elements));
-			break;
-		case INTSXP:
-			PROTECT(object = NEW_INTEGER(elements));
-			break;
-		case REALSXP:
-			PROTECT(object = NEW_NUMERIC(elements));
-			break;
-        case INT64SXP:
-        {
-            PROTECT(object = NEW_NUMERIC(elements));
-            SEXP cls = PROTECT(mkString("integer64"));
-            classgets(object, cls);
-            UNPROTECT(1); // Unprotect class_name, keep object protected
-            break;
-        }
-		case STRSXP:
-			PROTECT(object = NEW_CHARACTER(elements));
-			break;
-		case VECSXP:
-			PROTECT(object = NEW_LIST(elements));
-			break;
-		default:
-			error("Unsupported data type at %d %s\n", __LINE__, __FILE__);
-		}
-		SET_VECTOR_ELT(output, (Sint)i, object);
-		SET_STRING_ELT(output_names, i, COPY_TO_USER_STRING(names[i]));
-	}
-	SET_NAMES(output, output_names);
-	UNPROTECT(n+2);
-	return output;
-}
-
-/*
  * Make a data.frame from a named list by adding row.names, and class
  * attribute. Uses "1", "2", .. as row.names.
  */
@@ -280,7 +181,7 @@ static SEXP from_columns_kobject(K x)
 static SEXP error_broken_kobject(K broken)
 {
 	error("Value is not a valid kdb+ object; unknown type %d\n", broken->t);
-	return mkChar(r_data_types[0].name);
+	return mkChar("unknown");
 }
 
 /*

@@ -20,39 +20,49 @@ static void make_data_frame(SEXP data)
 	PROTECT(data);
 	PROTECT(class_name = NEW_CHARACTER((Sint) 1));
 	SET_STRING_ELT(class_name, 0, COPY_TO_USER_STRING("data.frame"));
-
 	/* Set the row.names. */
 	n = GET_LENGTH(VECTOR_ELT(data,0));
-  PROTECT(row_names=NEW_INTEGER(2)); INTEGER(row_names)[0]=NA_INTEGER; INTEGER(row_names)[1]=-n;
-  setAttrib(data, R_RowNamesSymbol, row_names);
-  SET_CLASS(data, class_name);
-  UNPROTECT(3);
+    PROTECT(row_names=NEW_INTEGER(2)); INTEGER(row_names)[0]=NA_INTEGER; INTEGER(row_names)[1]=-n;
+    setAttrib(data, R_RowNamesSymbol, row_names);
+    SET_CLASS(data, class_name);
+    UNPROTECT(3);
 }
 
-/* for datetime */
+/**
+ * set sxp as POSIXct (POSIX date-time) object
+ * sxp will dispatch methods as a POSIX date-time object (e.g., printing/formatting methods, as.POSIXct methods, etc.), 
+ * provided sxp is also a valid underlying representation for POSIXct 
+ * (typically a numeric vector of seconds since the epoch, plus often a "tzone" attribute). 
+ * If the underlying type/values aren’t consistent, R may print oddly or downstream functions may misbehave.
+ * in r class(sxp) <- c("POSIXt", "POSIXct")
+ */
 static void setdatetimeclass(SEXP sxp)
 {
 	SEXP datetimeclass = PROTECT(allocVector(STRSXP,2));
 	SET_STRING_ELT(datetimeclass, 0, mkChar("POSIXt"));
 	SET_STRING_ELT(datetimeclass, 1, mkChar("POSIXct"));
-	setAttrib(sxp, R_ClassSymbol, datetimeclass);
-	UNPROTECT(2);
+	setAttrib(sxp, R_ClassSymbol, datetimeclass);           // set class attribute of sxp 
+	UNPROTECT(1);
 }
 
-/* for timestamp */
+/**
+ * annotates sxp it so it can be treated as a nanotime timestamp backed by an integer64 representation, 
+ * and then returns an S4 version of that object
+ */
 static SEXP settimestampclass(SEXP sxp) {
-  SEXP classValue;
-  SEXP tag = PROTECT(mkString(".S3Class"));
-  SEXP val = PROTECT(mkString("integer64"));
-  setAttrib(sxp, tag, val);
-  UNPROTECT(2);
-  classValue= PROTECT(mkString("nanotime"));
-  tag = PROTECT(mkString("package"));
-  val = PROTECT(mkString("nanotime"));
-  setAttrib(classValue, tag, val);
-  classgets(sxp, classValue);
-  UNPROTECT(3);
-  return asS4(sxp,TRUE,0);
+    // Mark underlying storage as bit64-style integer64 
+    SEXP s3class = PROTECT(mkString("integer64"));
+    setAttrib(sxp, install(".S3Class"), s3class);
+    // Set class to "nanotime" and attach the class's package attribute
+    SEXP classValue = PROTECT(mkString("nanotime"));
+    SEXP pkg        = PROTECT(mkString("nanotime"));
+    setAttrib(classValue, install("package"), pkg);
+    // Apply class to the object 
+    classgets(sxp, classValue);
+    // Return as an S4 object (and protect the return value) 
+    SEXP ans = PROTECT(asS4(sxp, TRUE, 0));
+    UNPROTECT(4); 
+    return ans;
 }
 
 /*

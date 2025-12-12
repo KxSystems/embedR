@@ -218,43 +218,37 @@ static SEXP from_list_of_kobjects(K x)
 
 #define scalar(x) (x->t < 0)
 
+/**
+ * Create logical R type from kdb boolean (atom and vector)
+ */
 static SEXP from_bool_kobject(K x)
 {
-	SEXP result;
-	int length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_LOGICAL(1));
-		LOGICAL_POINTER(result)[0] = x->g;
-	}
-	else {
-		int i;
-		PROTECT(result = NEW_LOGICAL(length));
-		for(i = 0; i < length; i++)
-			LOGICAL_POINTER(result)[i] = kG(x)[i];
-	}
-	UNPROTECT(1);
-	return result;
-}
-
-static SEXP from_byte_kobject(K x)
-{
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-        PROTECT(result = NEW_RAW(1));
-        RAW(result)[0] = (unsigned char) x->g;
-	}
-	else {
-        PROTECT(result = NEW_RAW(length));
-		for(i = 0; i < length; i++)
-            RAW(result)[i] = (unsigned char) kG(x)[i];
-	}
-	UNPROTECT(1);
-	return result;
+    SEXP result;
+    if(scalar(x)) return ScalarLogical(x->g);
+    PROTECT(result= allocVector(LGLSXP,x->n));
+    for(int i= 0; i < x->n; i++)
+        LOGICAL(result)[i]= kG(x)[i];
+    UNPROTECT(1);
+    return result;
 }
 
 /**
- *@brief Function used in the conversion of kdb guid to R char array
+ * Create raw R type from kdb byte (atom and vector)
+ */
+static SEXP from_byte_kobject(K x)
+{
+    SEXP result;G*r;
+    if(scalar(x)) return ScalarRaw(x->g);
+    PROTECT(result= allocVector(RAWSXP,x->n));
+    r=RAW(result);
+    for(int i= 0; i < x->n; i++)
+        r[i]= kG(x)[i];
+    UNPROTECT(1);
+    return result;
+}
+
+/**
+ * Function used in the conversion of kdb guid to R char array
  */
 static K guid_2_char(G* x){
     K y= ktn(KC,37);
@@ -264,6 +258,9 @@ static K guid_2_char(G* x){
     return(y);
 }
 
+/**
+ * Create character R type from kdb guid (atom and vector)
+ */ 
 static SEXP from_guid_kobject(K x)
 {
     SEXP r;K y,z= ktn(0,x->n);
@@ -283,40 +280,37 @@ static SEXP from_guid_kobject(K x)
 	return r;
 }
 
+/**
+ * Create integer R type from kdb short (atom and vector)
+ */
 static SEXP from_short_kobject(K x)
 {
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_INTEGER(1));
-		INTEGER_POINTER(result)[0] = (int) x->h;
-	}
-	else {
-		PROTECT(result = NEW_INTEGER(xn));
-		for(i = 0; i < length; i++)
-			INTEGER_POINTER(result)[i] = (int) xH[i];
-	}
-	UNPROTECT(1);
-	return result;
+    SEXP result;
+    if(scalar(x)) return ScalarInteger(x->h==nh?NA_INTEGER:(int)x->h);
+    PROTECT(result= allocVector(INTSXP,x->n));
+    for(int i= 0; i < x->n; i++)
+        INTEGER(result)[i]= kH(x)[i]==nh?NA_INTEGER:kH(x)[i];
+    UNPROTECT(1);
+    return result;
 }
 
+/**
+ * Create integer R type from kdb integer (atom and vector)
+ */
 static SEXP from_int_kobject(K x)
 {
-	SEXP result;
-	int i, length = x->n;
-	if (scalar(x)) {
-		PROTECT(result = NEW_INTEGER(1));
-		INTEGER_POINTER(result)[0] = x->i;
-	}
-	else {
-		PROTECT(result = NEW_INTEGER(length));
-		for(i = 0; i < length; i++)
-			INTEGER_POINTER(result)[i] = (int) xI[i];
-	}
-	UNPROTECT(1);
-	return result;
+    SEXP result;
+    if(scalar(x)) return ScalarInteger(x->i);
+    PROTECT(result= allocVector(INTSXP,x->n));
+    for(int i= 0; i < x->n; i++)
+        INTEGER(result)[i]= kI(x)[i];
+    UNPROTECT(1);
+    return result;
 }
 
+/**
+ * Create integer64 R type from kdb long (atom and vector)
+ */
 static SEXP from_long_kobject(K x)
 {
     SEXP result;
@@ -333,6 +327,9 @@ static SEXP from_long_kobject(K x)
     return result;
 }
 
+/**
+ * Create numeric R type from kdb real (atom and vector)
+ */
 static SEXP from_float_kobject(K x)
 {
 	SEXP result;

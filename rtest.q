@@ -142,10 +142,10 @@ Rset["a";0Ng];         / guid
 t)"00000000-0000-0000-0000-000000000000"~Rget"a"
 Rset["a";("G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661";0Ng;"G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661")];
 t)("8c680a01-5a49-5aab-5a65-d4bfddb6a661";"00000000-0000-0000-0000-000000000000";"8c680a01-5a49-5aab-5a65-d4bfddb6a661")~Rget"a"
-Rset["a";0Nh];         / TODO short
-t)-32768i~first Rget"a"
+Rset["a";0Nh];         / short
+t)0Ni~first Rget"a"
 Rset["a";0 0N 2h];
-t)(0 -32768 2i)~Rget"a"
+t)(0 0N 2i)~Rget"a"
 Rset["a";0Ni];         / int
 t)0Ni~first Rget"a"
 Rset["a";1 0N 2i];

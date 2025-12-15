@@ -6,13 +6,7 @@
  * https://cran.r-project.org/doc/manuals/r-release/R-ints.pdf
  * https://cran.r-project.org/doc/manuals/r-release/R-exts.html
  */
-K ropen(K x);
-K rclose(K x);
-K rcmd(K x);
-K rget(K x);
-K rset(K x,K y);
 
-ZK rexec(int type,K x);
 ZK klogicv(J len, int *val);
 ZK klogica(J len, int rank, int *shape, int *val);
 ZK kintv(J len, int *val);
@@ -21,7 +15,6 @@ ZK klongv(J len, J*val);
 ZK klonga(J len, int rank, int *shape, J*val);
 ZK kdoublev(J len, double *val);
 ZK kdoublea(J len, int rank, int *shape, double *val);
-ZK from_any_robject(SEXP sxp);
 
 __thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
 __thread int RLOAD=0;
@@ -45,11 +38,18 @@ ZK from_vector_robject(SEXP);
 ZK from_raw_robject(SEXP sxp);
 ZK from_nyi_robject(S m,SEXP sxp);
 
+/**
+ * S3 class membership test
+ * @param class_ see if object has this class name
+ * @param s object to test
+ */
 Rboolean isClass(const char *class_, SEXP s) {
   SEXP klass;
   int i;
   if(OBJECT(s)) {
+    // for an S3 object, the class attribute is a character vector, e.g. c("lm", "oldClass").
     klass= getAttrib(s, R_ClassSymbol);
+    // iterate through each class name & check if anything matching provided class
     for(i= 0; i < length(klass); i++)
       if(!strcmp(CHAR(STRING_ELT(klass, i)), class_))
         return TRUE;
@@ -57,6 +57,9 @@ Rboolean isClass(const char *class_, SEXP s) {
   return FALSE;
 }
 
+/**
+ * Convert R object to K object
+ */
 ZK from_any_robject(SEXP sxp)
 {
 	K result = 0;
@@ -88,26 +91,35 @@ ZK from_any_robject(SEXP sxp)
 	case S4SXP : return from_nyi_robject("s4",sxp); break; 		/* S4 non-vector */
 
 	case NEWSXP : return error_broken_robject(sxp); break;		/* fresh node created in new page */
-  case FREESXP : return error_broken_robject(sxp); break;		/* node released by GC */
+    case FREESXP : return error_broken_robject(sxp); break;		/* node released by GC */
 	case FUNSXP : return from_nyi_robject("fun",sxp); break; 		/* Closure or Builtin */
 	}
 	return result;
 }
 
+/**
+ * Create a dict of all the attributes/values of the attributes associated with the R object
+ */
 ZK dictpairlist(SEXP sxp)
 {
 	K k = ktn(0,length(sxp));
 	K v = ktn(0,length(sxp));
 	SEXP s = sxp;J i;
 	for(i=0;i<length(sxp);i++) {
+        // tag is typically a SYMSXP symbol representing the name of the element 
+        // (e.g., attribute name like class, names, etc.). Can also be R_NilValue
 		kK(k)[i] = from_any_robject(TAG(s));
+        // value stored in the current node, it can be any R object: INTSXP, REALSXP, STRSXP, etc)
 		kK(v)[i] = from_any_robject(CAR(s));
+        // do to next node
 		s=CDR(s);
 	}
 	return xD(k,v);
 }
 
-/* add attribute */
+/**
+ * Create a 2 element list, first element is a dict of attributes, send element is the value
+ */
 ZK addattR (K x,SEXP att)
 {
 	// attrs are pairlists: LISTSXP
@@ -115,9 +127,13 @@ ZK addattR (K x,SEXP att)
 	return knk(2,u,x);
 }
 
-/* add attribute if any */
+/**
+ * If x has an attribute associated, return 2 element list, first element is a dict of attributes, send element is the value
+ * otherwise return x
+ */
 ZK attR(K x,SEXP sxp)
 {
+    // fetches the attributes pairlist attached to the R object
 	SEXP att = ATTRIB(sxp);
 	if (isNull(att)) return x;
 	return addattR(x,att);
@@ -128,10 +144,18 @@ ZK error_broken_robject(SEXP sxp)
 	return krr("Broken R object.");
 }
 
+/**
+ * Convert R object to K (one that isnt properly processed yet e.g. promise)
+ * @param marker name given to data type
+ * @param sxp r object
+ */
 ZK from_nyi_robject(S marker, SEXP sxp){
 	return attR(kp((S)Rf_type2char(TYPEOF(sxp))),sxp);
 }
 
+/**
+ * Convert R bytes to K byte vector
+ */
 ZK from_raw_robject(SEXP sxp)
 {
 	K x = ktn(KG,XLENGTH(sxp));
@@ -139,13 +163,19 @@ ZK from_raw_robject(SEXP sxp)
 	return x;
 }
 
-// NULL in R(R_NilValue): often used as generic zero length vector
-// NULL objects cannot have attributes and attempting to assign one by attr gives an error
+/**
+ * Convert R null to K empty list
+ * NULL in R(R_NilValue): often used as generic zero length vector
+ * NULL objects cannot have attributes and attempting to assign one by attr gives an error
+ */
 ZK from_null_robject(SEXP sxp)
 {
 	return knk(0);
 }
 
+/**
+ * Convert R symbol to K symbol
+ */
 ZK from_symbol_robject(SEXP sxp)
 {
 	const char* t = CHAR(PRINTNAME(sxp));
@@ -153,6 +183,9 @@ ZK from_symbol_robject(SEXP sxp)
 	return attR(x,sxp);
 }
 
+/**
+ * Convert R list of dotted pairs to K list
+ */
 ZK from_pairlist_robject(SEXP sxp)
 {
 	K x = ktn(0,2*length(sxp));
@@ -165,6 +198,9 @@ ZK from_pairlist_robject(SEXP sxp)
 	return attR(x,sxp);
 }
 
+/**
+ * Convert R close to K list
+ */
 ZK from_closure_robject(SEXP sxp)
 {
 	K x = from_any_robject(FORMALS(sxp));
@@ -172,6 +208,9 @@ ZK from_closure_robject(SEXP sxp)
 	return attR(knk(2,x,y),sxp);
 }
 
+/**
+ * Convert R language object to K list
+ */
 ZK from_language_robject(SEXP sxp)
 {
 	K x = knk(0);
@@ -183,18 +222,25 @@ ZK from_language_robject(SEXP sxp)
 	return attR(x,sxp);
 }
 
+/**
+ * Convert R char to K char vector
+ */
 ZK from_char_robject(SEXP sxp)
 {
 	K x = kpn((S)CHAR(STRING_ELT(sxp,0)),LENGTH(sxp));
 	return attR(x,sxp);
 }
 
+/**
+ * Convert R logical  to K boolean vector
+ */
 ZK from_logical_robject(SEXP sxp)
 {
 	K x;
 	J len = XLENGTH(sxp);
     SEXP dim= getAttrib(sxp, R_DimSymbol);
 	if (isNull(dim)) {
+        // convert to boolean vector
         x = klogicv(len,LOGICAL(sxp));
 		return attR(x,sxp);
 	}
@@ -210,6 +256,9 @@ ZK from_logical_robject(SEXP sxp)
 	return x;
 }
 
+/**
+ * Convert R integer object to K integer vector
+ */
 ZK from_integer_robject(SEXP sxp)
 {
 	K x;
@@ -231,6 +280,9 @@ ZK from_integer_robject(SEXP sxp)
 	return x;
 }
 
+/**
+ * Convert R real (double) object to K float/long/timestamp objects
+ */
 ZK from_double_robject(SEXP sxp)
 {
 	K x;
@@ -252,6 +304,7 @@ ZK from_double_robject(SEXP sxp)
         /* For arrays with dimensions - not commonly used with integer64 */
         return klonga(len, length(dim), INTEGER(dim), (J*)REAL(sxp));  // Don't attach R attributes for integer64
     }
+    // convert to float
 	x = kdoublea(len,length(dim),INTEGER(dim),REAL(sxp));
 	SEXP dimnames = GET_DIMNAMES(sxp);
 	if (!isNull(dimnames))
@@ -264,6 +317,9 @@ ZK from_double_robject(SEXP sxp)
 	return x;
 }
 
+/**
+ * Convert R char to K char or list
+ */
 ZK from_character_robject(SEXP sxp)
 {
 	K x;
@@ -278,6 +334,9 @@ ZK from_character_robject(SEXP sxp)
   return attR(x,sxp);
 }
 
+/**
+ * Convert R generic vector to K list
+ */
 ZK from_vector_robject(SEXP sxp)
 {
 	J i, length = LENGTH(sxp);
@@ -288,22 +347,19 @@ ZK from_vector_robject(SEXP sxp)
   return attR(x,sxp);
 }
 
-/*
- * various utilities
+/**
+ * get k string or symbol name 
  */
-
-/* get k string or symbol name */
 static char * getkstring(K x)
 {
 	char *s=NULL;
-	int len;
 	switch (xt) {
 	case -KC :
 		s = calloc(2,1); s[0] = xg; break;
 	case KC :
 		s = calloc(1+xn,1); memmove(s, xG, xn); break;
 	case -KS : // TODO: xs is already 0 terminated and fixed. can just return xs
-		len = 1+strlen(xs);
+		int len = 1+strlen(xs);
 		s = calloc(len,1); memmove(s, xs, len); break;
 	default : krr("invalid name");
 	}
@@ -315,6 +371,9 @@ static char * getkstring(K x)
  * done for boolean, int, double
  */
 
+/**
+ * Convert to boolean vector
+ */
 ZK klogicv(J len, int *val) {
   K x= ktn(KB, len);
   DO(len, kG(x)[i]= (val)[i]);
@@ -350,6 +409,9 @@ ZK klogica(J len, int rank, int *shape, int *val) {
   return x;
 }
 
+/**
+ * Convert to integer vector
+ */
 ZK kintv(J len, int *val)
 {
 	K x = ktn(KI, len);
@@ -379,6 +441,9 @@ ZK kinta(J len, int rank, int *shape, int *val)
 	return x;
 }
 
+/**
+ * Convert to long vector
+ */
 ZK klongv(J len, J*val)
 {
     K x = ktn(KJ, len);
@@ -413,6 +478,9 @@ ZK klonga(J len, int rank, int *shape, J*val) {
   return x;
 }
 
+/**
+ * Convert to float vector
+ */
 ZK kdoublev(J len, double *val)
 {
 	K x = ktn(KF, len);
@@ -515,13 +583,15 @@ K ropen(K x)
 // note that embedded R can be initialised once. No open/close/open supported 
 // http://r.789695.n4.nabble.com/Terminating-and-restarting-an-embedded-R-instance-possible-td4641823.html
 K rclose(K x){R NULL;}
-K rcmd(K x) { return rexec(0,x); }
-K rget(K x) { return rexec(1,x); }
 
 static char* ParseError[5]={"null","ok","incomplete","error","eof"};
 
-
-K rexec(int type,K x)
+/**
+ * Execute the expression 
+ * @param type 1 will return the result
+ * @param x expression to evaluate (string,char,sym)
+ */
+ZK rexec(int type,K x)
 {
 	if(!RLOAD) return krr("main thread only");
 	if (ROPEN < 0) ropen(NULL);
@@ -529,10 +599,12 @@ K rexec(int type,K x)
 	char rerr[256];extern char	R_ParseErrorMsg[256];
 	int error;
 	ParseStatus status;
+    // create R object from K symbol/string/char
 	if(abs(x->t)==KS) e=from_symbol_kobject(x);
 	else if(abs(x->t)==KC) e=from_string_kobject(x);
 	else return krr("type");
 	PROTECT(e);
+    // parse 1 expression from e (if contains multiple, only do first)
 	PROTECT(p=R_ParseVector(e, 1, &status, R_NilValue));
 	if (status != PARSE_OK) {
 		UNPROTECT(2);
@@ -540,6 +612,7 @@ K rexec(int type,K x)
 		return krr(rerr);
 	}
 	PROTECT(xp=VECTOR_ELT(p, 0));
+    // evaluate the first expression
 	r=R_tryEvalSilent(xp, R_GlobalEnv, &error);
 	UNPROTECT(3);
 	R_ProcessEvents();
@@ -547,10 +620,16 @@ K rexec(int type,K x)
 		snprintf(rerr,sizeof(rerr),"eval error: %s",R_curErrorBuf());
 		return krr(rerr);
 	}
-	if (type==1) return from_any_robject(r);
+	if (type==1) return from_any_robject(r); // convert result to q, return result
 	return (K)0; //return knk(0) for cmd success?
 }
 
+K rcmd(K x) { return rexec(0,x); }
+K rget(K x) { return rexec(1,x); }
+
+/**
+ * set the R variable named by x (char,char vector,sym), to the value y
+ */
 K rset(K x,K y) {
 	if(!RLOAD) return krr("main thread only");
 	if (ROPEN < 0) ropen(NULL);
@@ -558,23 +637,27 @@ K rset(K x,K y) {
 	SEXP txt, sym, val;
 	char rerr[256];extern char	R_ParseErrorMsg[256];
 	char *name = getkstring(x);
-	/* generate symbol to check name is valid */
+	// generate symbol to check name is valid 
 	PROTECT(txt=allocVector(STRSXP, 1));
 	SET_STRING_ELT(txt, 0, mkChar(name));
 	free(name);
+    // parse the string as R code to validate it is a symbol
 	PROTECT(sym = R_ParseVector(txt, 1, &status,R_NilValue));
 	if (status != PARSE_OK) {
 		UNPROTECT(2);
 		snprintf(rerr,sizeof(rerr),"%s: %s",ParseError[status], R_ParseErrorMsg);
 		return krr(rerr);
 	}
+    // check the parsed code is a symbol (not "a+b", "foo()", etc)
 	if(SYMSXP != TYPEOF(VECTOR_ELT(sym,0))){
 		UNPROTECT(2);
 		return krr("nyi");
 	}
-	/* read back symbol string */
+	// use the official print name
 	const char *c = CHAR(PRINTNAME(VECTOR_ELT(sym,0)));
+    // convert K object into R object
 	PROTECT(val = from_any_kobject(y));
+    // create variable in global env (install interns the sym, bind to value)
 	defineVar(install(c),val,R_GlobalEnv);
 	UNPROTECT(3);
 	R_ProcessEvents();

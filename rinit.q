@@ -1,6 +1,5 @@
 / R server for Q
 
-Rclose:`embedr 2:(`rclose;1)
 Ropen:`embedr 2:(`ropen;1)
 Rcmd0:`embedr 2:(`rcmd;1)
 Rget0:`embedr 2:(`rget;1)

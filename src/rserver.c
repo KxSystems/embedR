@@ -6,16 +6,6 @@
  * https://cran.r-project.org/doc/manuals/r-release/R-ints.pdf
  * https://cran.r-project.org/doc/manuals/r-release/R-exts.html
  */
-
-ZK klogicv(J len, int *val);
-ZK klogica(J len, int rank, int *shape, int *val);
-ZK kintv(J len, int *val);
-ZK kinta(J len, int rank, int *shape, int *val);
-ZK klongv(J len, J*val);
-ZK klonga(J len, int rank, int *shape, J*val);
-ZK kdoublev(J len, double *val);
-ZK kdoublea(J len, int rank, int *shape, double *val);
-
 __thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
 __thread int RLOAD=0;
 
@@ -232,6 +222,44 @@ ZK from_char_robject(SEXP sxp)
 }
 
 /**
+ * Convert to boolean vector
+ */
+ZK klogicv(J len, int *val) {
+  K x= ktn(KB, len);
+  DO(len, kG(x)[i]= (val)[i]);
+  return x;
+}
+
+ZK klogica(J len, int rank, int *shape, int *val) {
+  K x, y;
+  J i, j, r, c, k;
+  switch(rank) {
+    case 1:
+      x= klogicv(len, val);
+      break;
+    case 2:
+      r= shape[0];
+      c= shape[1];
+      x= knk(0);
+      for(i= 0; i < r; i++) {
+        y= ktn(KB, c);
+        for(j= 0; j < c; j++)
+          kG(y)[j]= val[i + r * j];
+        x= jk(&x, y);
+      };
+      break;
+    default:
+      k= rank - 1;
+      r= shape[k];
+      c= len / r;
+      x= knk(0);
+      for(i= 0; i < r; i++)
+        x= jk(&x, klogica(c, k, shape, val + c * i));
+  }
+  return x;
+}
+
+/**
  * Convert R logical  to K boolean vector
  */
 ZK from_logical_robject(SEXP sxp)
@@ -257,6 +285,38 @@ ZK from_logical_robject(SEXP sxp)
 }
 
 /**
+ * Convert to integer vector
+ */
+ZK kintv(J len, int *val)
+{
+	K x = ktn(KI, len);
+	DO(len,kI(x)[i]=(val)[i]);
+	return x;
+}
+
+ZK kinta(J len, int rank, int *shape, int *val)
+{
+	K x,y;
+	J i,j,r,c,k;
+	switch (rank) {
+		case 1 : x = kintv(len,val); break;
+		case 2 :
+			r = shape[0]; c = shape[1]; x = knk(0);
+			for (i=0;i<r;i++) {
+				y = ktn(KI,c);
+				for (j=0;j<c;j++)
+					kI(y)[j] = val[i+r*j];
+				x = jk(&x,y);
+			}; break;
+		default :
+			k = rank-1; r = shape[k]; c = len/r; x = knk(0);
+			for (i=0;i<r;i++)
+				x = jk(&x,kinta(c,k,shape,val+c*i));
+	}
+	return x;
+}
+
+/**
  * Convert R integer object to K integer vector
  */
 ZK from_integer_robject(SEXP sxp)
@@ -277,6 +337,75 @@ ZK from_integer_robject(SEXP sxp)
 	SET_DIM(e, R_NilValue);
 	x = attR(x,e);
 	UNPROTECT(1);
+	return x;
+}
+
+/**
+ * Convert to long vector
+ */
+ZK klongv(J len, J*val)
+{
+    K x = ktn(KJ, len);
+    DO(len,kJ(x)[i]=(val)[i]);
+    return x;
+}
+
+ZK klonga(J len, int rank, int *shape, J*val) {
+  K x, y;
+  J i, j, r, c, k;
+  switch(rank) {
+  case 1:
+    x=klongv(len,val);
+    break;
+  case 2:
+    r= shape[0]; c= shape[1]; x= ktn(0,r);
+    for(i= 0; i < r; i++) {
+      y= ktn(KJ, c);
+      for(j= 0; j < c; j++)
+        kJ(y)[j]= val[i + r * j];
+      kK(x)[i]=y;
+    };
+    break;
+  default:
+    k= rank - 1;
+    r= shape[k];
+    c= len / r;
+    x= knk(0);
+    for(i= 0; i < r; i++)
+      kK(x)[i] = klonga(c, k, shape, val + c * i);
+  }
+  return x;
+}
+
+/**
+ * Convert to float vector
+ */
+ZK kdoublev(J len, double *val)
+{
+	K x = ktn(KF, len);
+	DO(len,kF(x)[i]=(val)[i]);
+	return x;
+}
+
+ZK kdoublea(J len, int rank, int *shape, double *val)
+{
+	K x,y;
+	J i,j,r,c,k;
+	switch (rank) {
+		case 1 : x = kdoublev(len,val); break;
+		case 2 :
+			r = shape[0]; c = shape[1]; x = knk(0);
+			for (i=0;i<r;i++) {
+				y = ktn(KF,c);
+				for (j=0;j<c;j++)
+					kF(y)[j] = val[i+r*j];
+				x = jk(&x,y);
+			}; break;
+		default :
+			k = rank-1; r = shape[k]; c = len/r; x = knk(0);
+			for (i=0;i<r;i++)
+				x = jk(&x,kdoublea(c,k,shape,val+c*i));
+	}
 	return x;
 }
 
@@ -364,150 +493,6 @@ static char * getkstring(K x)
 	default : krr("invalid name");
 	}
 	return s;
-}
-
-/*
- * convert R arrays to K lists
- * done for boolean, int, double
- */
-
-/**
- * Convert to boolean vector
- */
-ZK klogicv(J len, int *val) {
-  K x= ktn(KB, len);
-  DO(len, kG(x)[i]= (val)[i]);
-  return x;
-}
-
-ZK klogica(J len, int rank, int *shape, int *val) {
-  K x, y;
-  J i, j, r, c, k;
-  switch(rank) {
-    case 1:
-      x= kintv(len, val);
-      break;
-    case 2:
-      r= shape[0];
-      c= shape[1];
-      x= knk(0);
-      for(i= 0; i < r; i++) {
-        y= ktn(KB, c);
-        for(j= 0; j < c; j++)
-          kG(y)[j]= val[i + r * j];
-        x= jk(&x, y);
-      };
-      break;
-    default:
-      k= rank - 1;
-      r= shape[k];
-      c= len / r;
-      x= knk(0);
-      for(i= 0; i < r; i++)
-        x= jk(&x, klogica(c, k, shape, val + c * i));
-  }
-  return x;
-}
-
-/**
- * Convert to integer vector
- */
-ZK kintv(J len, int *val)
-{
-	K x = ktn(KI, len);
-	DO(len,kI(x)[i]=(val)[i]);
-	return x;
-}
-
-ZK kinta(J len, int rank, int *shape, int *val)
-{
-	K x,y;
-	J i,j,r,c,k;
-	switch (rank) {
-		case 1 : x = kintv(len,val); break;
-		case 2 :
-			r = shape[0]; c = shape[1]; x = knk(0);
-			for (i=0;i<r;i++) {
-				y = ktn(KI,c);
-				for (j=0;j<c;j++)
-					kI(y)[j] = val[i+r*j];
-				x = jk(&x,y);
-			}; break;
-		default :
-			k = rank-1; r = shape[k]; c = len/r; x = knk(0);
-			for (i=0;i<r;i++)
-				x = jk(&x,kinta(c,k,shape,val+c*i));
-	}
-	return x;
-}
-
-/**
- * Convert to long vector
- */
-ZK klongv(J len, J*val)
-{
-    K x = ktn(KJ, len);
-    DO(len,kJ(x)[i]=(val)[i]);
-    return x;
-}
-
-ZK klonga(J len, int rank, int *shape, J*val) {
-  K x, y;
-  J i, j, r, c, k;
-  switch(rank) {
-  case 1:
-    x=klongv(len,val);
-    break;
-  case 2:
-    r= shape[0]; c= shape[1]; x= ktn(0,r);
-    for(i= 0; i < r; i++) {
-      y= ktn(KJ, c);
-      for(j= 0; j < c; j++)
-        kJ(y)[j]= val[i + r * j];
-      kK(x)[i]=y;
-    };
-    break;
-  default:
-    k= rank - 1;
-    r= shape[k];
-    c= len / r;
-    x= knk(0);
-    for(i= 0; i < r; i++)
-      kK(x)[i] = klonga(c, k, shape, val + c * i);
-  }
-  return x;
-}
-
-/**
- * Convert to float vector
- */
-ZK kdoublev(J len, double *val)
-{
-	K x = ktn(KF, len);
-	DO(len,kF(x)[i]=(val)[i]);
-	return x;
-}
-
-ZK kdoublea(J len, int rank, int *shape, double *val)
-{
-	K x,y;
-	J i,j,r,c,k;
-	switch (rank) {
-		case 1 : x = kdoublev(len,val); break;
-		case 2 :
-			r = shape[0]; c = shape[1]; x = knk(0);
-			for (i=0;i<r;i++) {
-				y = ktn(KF,c);
-				for (j=0;j<c;j++)
-					kF(y)[j] = val[i+r*j];
-				x = jk(&x,y);
-			}; break;
-		default :
-			k = rank-1; r = shape[k]; c = len/r; x = knk(0);
-			for (i=0;i<r;i++)
-				x = jk(&x,kdoublea(c,k,shape,val+c*i));
-	}
-	return x;
 }
 
 /*

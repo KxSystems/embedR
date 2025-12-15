@@ -552,6 +552,8 @@ K processR(I d){
  * ropen argument is empty, 0 or 1
  * empty,0   --slave (R is quietest)
  * 1         --verbose
+ * note that embedded R can be initialised once. No open/close/open supported
+ * http://r.789695.n4.nabble.com/Terminating-and-restarting-an-embedded-R-instance-possible-td4641823.html
  */
 K ropen(K x)
 {
@@ -579,10 +581,6 @@ K ropen(K x)
 	ROPEN=mode;
 	return ki(ROPEN);
 }
-
-// note that embedded R can be initialised once. No open/close/open supported 
-// http://r.789695.n4.nabble.com/Terminating-and-restarting-an-embedded-R-instance-possible-td4641823.html
-K rclose(K x){R NULL;}
 
 static char* ParseError[5]={"null","ok","incomplete","error","eof"};
 

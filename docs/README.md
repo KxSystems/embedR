@@ -15,7 +15,6 @@ meaning all the R statistical routines and graphing capabilities can be invoked 
 Using this method means data is not passed between remote processes. The library has five methods:
 
 -   `Ropen`: open R
--   `Rclose`: close R
 -   `Rcmd`: run an R command, do not return a result
 -   `Rget`: run an R command, return the result to q
 -   `Rset`: set a variable in the R memory space

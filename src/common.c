@@ -133,7 +133,7 @@ conversion_function kdbplus_types[] = {
 	from_time_kobject
 };
 
-/*
+/**
  * Convert K object to R object
  */
 static SEXP from_any_kobject(K x)
@@ -145,10 +145,13 @@ static SEXP from_any_kobject(K x)
 	else if (XD == type)
 		result = from_dictionary_kobject(x);
 	else if (105 == type || 101 == type)
+        // composition and unary primitive
 		result = from_int_kobject(ki(0));
 	else if (type <= KT)
+        // basic data types
 		result = kdbplus_types[type](x);
 	else if (KT < type && type < 77) {
+        // enums
 		K t = k(0,"value",r1(x),(K)0);
 		if(t && t->t!=-128) {
 			result = from_any_kobject(t);
@@ -168,7 +171,7 @@ static SEXP from_any_kobject(K x)
 	return result;
 }
 
-/*
+/**
  * Convert K columns to R object
  */
 static SEXP from_columns_kobject(K x)
@@ -421,6 +424,7 @@ static SEXP from_month_kobject(K object)
 static SEXP from_date_kobject(K x)
 {
     SEXP result=PROTECT(from_int_kobject(x));
+    // add days between 1970 and 2000
     for(int i= 0; i < XLENGTH(result); i++)
         if(INTEGER(result)[i]!=NA_INTEGER)
             INTEGER(result)[i]+=kdbDateOffset;
@@ -429,13 +433,17 @@ static SEXP from_date_kobject(K x)
     return result;
 }
 
+/**
+ * Create date R type from kdb datetime (atom and vector)
+ */
 static SEXP from_datetime_kobject(K x)
 {
 	SEXP result;
 	int i, length = x->n;
+    // add days between 1970 and 2000, multiply by seconds in a day
 	if (scalar(x)) {
 		PROTECT(result = NEW_NUMERIC(1));
-		NUMERIC_POINTER(result)[0] = (x->f + kdbDateOffset) * 86400;
+		NUMERIC_POINTER(result)[0] = (x->f + kdbDateOffset) * 86400; 
 	}
 	else {
 		PROTECT(result = NEW_NUMERIC(length));
@@ -443,28 +451,42 @@ static SEXP from_datetime_kobject(K x)
 			NUMERIC_POINTER(result)[i] = (kF(x)[i] + kdbDateOffset) * 86400;
 	}
     setdatetimeclass(result);
+    UNPROTECT(1);
 	return result;
 }
 
+/**
+ * Create integer R type from kdb minute (atom and vector)
+ */
 static SEXP from_minute_kobject(K object)
 {
 	return from_int_kobject(object);
 }
 
+/**
+ * Create integer R type from kdb second (atom and vector)
+ */
 static SEXP from_second_kobject(K object)
 {
 	return from_int_kobject(object);
 }
 
+/**
+ * Create integer R type from kdb time (atom and vector)
+ */
 static SEXP from_time_kobject(K object)
 {
 	return from_int_kobject(object);
 }
 
+/**
+ * Create numeric R type from kdb timespan (atom and vector)
+ */
 static SEXP from_timespan_kobject(K x)
 {
 	SEXP result;
 	int i, length = x->n;
+    // remove nanoseconds
 	if (scalar(x)) {
 		PROTECT(result = NEW_NUMERIC(1));
 		NUMERIC_POINTER(result)[0] = x->j / 1e9;
@@ -478,6 +500,9 @@ static SEXP from_timespan_kobject(K x)
 	return result;
 }
 
+/**
+ * Create nanotime R type from kdb timespan (atom and vector)
+ */
 static SEXP from_timestamp_kobject(K x) {
   SEXP result=from_long_kobject(x);
   long n=XLENGTH(result);

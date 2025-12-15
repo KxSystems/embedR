@@ -16,7 +16,7 @@ EXPORT SEXP kx_r_open_connection(SEXP);
 EXPORT SEXP kx_r_close_connection(SEXP);
 EXPORT SEXP kx_r_execute(SEXP c, SEXP);
 
-/*
+/**
  * Open a connection to an existing kdb+ process.
  *
  * If we just have a host and port we call khp from the kdb+ interface.
@@ -58,7 +58,7 @@ SEXP kx_r_open_connection(SEXP whence)
 	return result;
 }
 
-/*
+/**
  * Close a connection to an existing kdb+ process.
  */
 SEXP kx_r_close_connection(SEXP connection)
@@ -74,7 +74,7 @@ SEXP kx_r_close_connection(SEXP connection)
 	return result;
 }
 
-/*
+/**
  * Execute a kdb+ query over the given connection.
  */
 SEXP kx_r_execute(SEXP connection, SEXP query)
@@ -93,6 +93,7 @@ SEXP kx_r_execute(SEXP connection, SEXP query)
 		r0(result);
 		error("Error from kdb+: `%s\n", e);
 	}
+    // convert K object into R object
 	s = from_any_kobject(result);
 	r0(result);
 	return s;

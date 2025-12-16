@@ -18,6 +18,8 @@ t)"logical"~Rget"class(a)"
 Rset["a";0101b];
 t)"logical"~Rget"class(a)"
 t)4i~first Rget"length(a)"
+Rcmd"x <- array(c(TRUE, FALSE, TRUE, FALSE), dim = 4L)";
+t)(1010b)~Rget"x"
 
 / set data type guid
 Rset["a";first 1?0Ng]
@@ -46,6 +48,8 @@ t)"integer"~Rget"class(a)"
 Rset["a";1 2i];
 t)"integer"~Rget"class(a)"
 t)2i~first Rget"length(a)"
+Rcmd"x <- array(1:10, dim = 10L)";
+t)("i"$1+til 10)~Rget"x"
 
 / set data type long
 Rset["a";1];
@@ -67,6 +71,8 @@ t)"numeric"~Rget"class(a)"
 Rset["a";1.1 2.2];
 t)"numeric"~Rget"class(a)"
 t)2i~first Rget"length(a)"
+Rcmd"x <- array(c(1.1,2.2,3.3), dim = 3L)";
+t)(1.1 2.2 3.3)~Rget"x"
 
 / set data type char
 Rset["a";"a"];

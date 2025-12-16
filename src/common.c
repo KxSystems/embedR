@@ -168,7 +168,7 @@ static SEXP from_list_of_kobjects(K x)
 {
 	SEXP result;
 	int i, length = x->n;
-	PROTECT(result = NEW_LIST(length));
+    PROTECT(result= allocVector(VECSXP,length));
 	for (i = 0; i < length; i++) {
 		SET_VECTOR_ELT(result, i, from_any_kobject(xK[i]));
 	}
@@ -346,9 +346,9 @@ static SEXP from_string_kobject(K x)
 static SEXP from_string_column_kobject(K x)
 {
   SEXP result;
-  int i, length = x->n;
-  PROTECT(result = NEW_CHARACTER(length));
-  for(i = 0; i < length; i++) {
+  int i, n = scalar(x)?1:x->n;
+  PROTECT(result= allocVector(STRSXP,n));
+  for(i = 0; i < n; i++) {
     SET_STRING_ELT(result, i, mkCharLen((S)&kC(x)[i],1));
   }
   UNPROTECT(1);
@@ -478,9 +478,9 @@ static SEXP from_dictionary_kobject(K x)
 	SEXP names, result;
 	K table;
 
-	/* if keyed, try to create a simple table */
-	/* ktd will free its argument if successful */
-	/* if fails, x is still valid */
+	// if keyed, try to create a simple table 
+	// ktd will free its argument if successful 
+	// if fails, x is still valid 
 	if (XT==xx->t && XT==xy->t) {
 		r1(x);
 		if ((table = ktd(x))) {
@@ -493,7 +493,7 @@ static SEXP from_dictionary_kobject(K x)
 
 	PROTECT(names = from_any_kobject(xx));
 	PROTECT(result = from_any_kobject(xy));
-	SET_NAMES(result, names);
+    setAttrib(result, R_NamesSymbol, names);
 	UNPROTECT(2);
 	return result;
 }
@@ -524,7 +524,7 @@ static SEXP from_columns_kobject(K x)
   SEXP col, result;
   int i, type, length = x->n;
   K c;
-  PROTECT(result = NEW_LIST(length));
+  PROTECT(result= allocVector(VECSXP,length));
   for (i = 0; i < length; i++) {
     c = xK[i];
     type = abs(c->t);
@@ -544,7 +544,7 @@ static SEXP from_table_kobject(K x)
   SEXP names, result;
   PROTECT(names = from_any_kobject(kK(x->k)[0]));
   PROTECT(result = from_columns_kobject(kK(x->k)[1]));
-  SET_NAMES(result, names);
+  setAttrib(result, R_NamesSymbol, names);
   UNPROTECT(2);
   make_data_frame(result);
   return result;

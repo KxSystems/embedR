@@ -11,24 +11,6 @@ Z const J epoch_offset=kdbDateOffset*24*60*60*1000000000LL;
 #define INT64SXP 64
 #define INT64(x) ((J*) NUMERIC_POINTER(x))
 
-/*
- * Make a data.frame from a named list by adding row.names, and class
- * attribute. Uses "1", "2", .. as row.names.
- */
-static void make_data_frame(SEXP data)
-{
-	SEXP class_name, row_names; Sint n;
-	PROTECT(data);
-	PROTECT(class_name = NEW_CHARACTER((Sint) 1));
-	SET_STRING_ELT(class_name, 0, COPY_TO_USER_STRING("data.frame"));
-	/* Set the row.names. */
-	n = GET_LENGTH(VECTOR_ELT(data,0));
-    PROTECT(row_names=NEW_INTEGER(2)); INTEGER(row_names)[0]=NA_INTEGER; INTEGER(row_names)[1]=-n;
-    setAttrib(data, R_RowNamesSymbol, row_names);
-    SET_CLASS(data, class_name);
-    UNPROTECT(3);
-}
-
 /**
  * set sxp as POSIXct (POSIX date-time) object
  * sxp will dispatch methods as a POSIX date-time object (e.g., printing/formatting methods, as.POSIXct methods, etc.), 
@@ -78,7 +60,6 @@ static SEXP setdateclass(SEXP sxp) {
 /*
  * We have functions that turn any K object into the appropriate R SEXP.
  */
-static SEXP from_any_kobject(K object);
 static SEXP error_broken_kobject(K);
 static SEXP from_list_of_kobjects(K);
 static SEXP from_bool_kobject(K);
@@ -169,28 +150,6 @@ static SEXP from_any_kobject(K x)
 	else
 		result = error_broken_kobject(x);
 	return result;
-}
-
-/**
- * Convert K columns to R object
- */
-static SEXP from_columns_kobject(K x)
-{
-  SEXP col, result;
-  int i, type, length = x->n;
-  K c;
-  PROTECT(result = NEW_LIST(length));
-  for (i = 0; i < length; i++) {
-    c = xK[i];
-    type = abs(c->t);
-    if (type == KC)
-      col = from_string_column_kobject(c);
-    else
-      col = from_any_kobject(c);
-    SET_VECTOR_ELT(result, i, col);
-  }
-  UNPROTECT(1);
-  return result;
 }
 
 /*
@@ -538,6 +497,47 @@ static SEXP from_dictionary_kobject(K x)
 	UNPROTECT(2);
 	return result;
 }
+
+/*
+ * Make a data.frame from a named list by adding row.names, and class
+ * attribute. Uses "1", "2", .. as row.names.
+ */
+static void make_data_frame(SEXP data)
+{
+	SEXP class_name, row_names; Sint n;
+	PROTECT(data);
+	PROTECT(class_name = NEW_CHARACTER((Sint) 1));
+	SET_STRING_ELT(class_name, 0, COPY_TO_USER_STRING("data.frame"));
+	/* Set the row.names. */
+	n = GET_LENGTH(VECTOR_ELT(data,0));
+    PROTECT(row_names=NEW_INTEGER(2)); INTEGER(row_names)[0]=NA_INTEGER; INTEGER(row_names)[1]=-n;
+    setAttrib(data, R_RowNamesSymbol, row_names);
+    SET_CLASS(data, class_name);
+    UNPROTECT(3);
+}
+
+/**
+ * Convert K columns to R object
+ */
+static SEXP from_columns_kobject(K x)
+{
+  SEXP col, result;
+  int i, type, length = x->n;
+  K c;
+  PROTECT(result = NEW_LIST(length));
+  for (i = 0; i < length; i++) {
+    c = xK[i];
+    type = abs(c->t);
+    if (type == KC)
+      col = from_string_column_kobject(c);
+    else
+      col = from_any_kobject(c);
+    SET_VECTOR_ELT(result, i, col);
+  }
+  UNPROTECT(1);
+  return result;
+}
+
 
 static SEXP from_table_kobject(K x)
 {

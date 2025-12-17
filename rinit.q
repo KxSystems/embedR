@@ -14,7 +14,6 @@ Rconvmap[enlist "data.frame"]:{
   r:flip ((),`$a`names)!Rconv each  last x;
   r[`row.names]:$[null first rn:a`row.names;1+til last neg rn;rn];
   r}
-Rconvmap[enlist "factor"]:{`$x[0;`levels] -1+last x}
 Rconv:{
   if[(2<>count x) or 99<>type first x;:x]; // no attrs
   c:first[x]`class;

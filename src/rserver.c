@@ -104,6 +104,17 @@ ZK from_datetime_robject(SEXP sxp) {
     return from_datetime_lt_robject(sxp);
 }
 
+ZK from_factor_robject(SEXP sxp) {
+  J length= XLENGTH(sxp);
+  SEXP levels= asCharacterFactor(sxp);
+  K x= ktn(KS, length);
+  for(J i= 0; i < length; i++) {
+    const char *sym= CHAR(STRING_ELT(levels, i));
+    kS(x)[i]= ss((S) sym);
+  }
+  return x;
+}
+
 /**
  * Convert R object to K object
  */
@@ -116,6 +127,9 @@ ZK from_any_robject(SEXP sxp)
     }
     if(isClass("POSIXt", sxp)){
         return from_datetime_robject(sxp);
+    }
+    if(isClass("factor", sxp)){
+        return from_factor_robject(sxp);
     }
 	switch (type) {
 	case NILSXP : return from_null_robject(sxp); break; 		/* nil = NULL */

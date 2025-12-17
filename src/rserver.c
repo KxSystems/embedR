@@ -61,6 +61,18 @@ ZK from_date_robject(SEXP sxp) {
   return x;
 }
 
+/**
+ * @brief Build atom value dictionary.
+ */
+ZK atom_value_dict(J len, K v, SEXP keys){
+  K k= ktn(KS, len);
+  for(J i= 0; i < len; i++) {
+    const char *keyName= CHAR(STRING_ELT(keys, i));
+    kS(k)[i]= ss((S) keyName);
+  }
+  return xD(k,v);
+}
+
 ZI kdbSecOffset = 946684800;
 ZI sec2day = 86400;
 
@@ -115,6 +127,21 @@ ZK from_factor_robject(SEXP sxp) {
   return x;
 }
 
+ZK from_frame_robject(SEXP sxp) {
+  J length= XLENGTH(sxp);
+  if(length == 0)
+    return from_null_robject(sxp);
+  SEXP colNames= getAttrib(sxp, R_NamesSymbol);
+  K k= ktn(KS, length), v= ktn(0, length);
+  for(J i= 0; i < length; i++) {
+    kK(v)[i]= from_any_robject(VECTOR_ELT(sxp, i));
+    const char *colName= CHAR(STRING_ELT(colNames, i));
+    kS(k)[i]= ss((S) colName);
+  }
+  K tbl= xT(xD(k, v));
+  return tbl;
+}
+
 /**
  * Convert R object to K object
  */
@@ -122,6 +149,9 @@ ZK from_any_robject(SEXP sxp)
 {
 	K result = 0;
 	int type = TYPEOF(sxp);
+    if(isClass("data.frame", sxp)){
+        return from_frame_robject(sxp);
+    }
     if(isClass("Date", sxp)){
         return from_date_robject(sxp);
     }
@@ -165,32 +195,12 @@ ZK from_any_robject(SEXP sxp)
 }
 
 /**
- * Create a dict of all the attributes/values of the attributes associated with the R object
- */
-ZK dictpairlist(SEXP sxp)
-{
-	K k = ktn(0,length(sxp));
-	K v = ktn(0,length(sxp));
-	SEXP s = sxp;J i;
-	for(i=0;i<length(sxp);i++) {
-        // tag is typically a SYMSXP symbol representing the name of the element 
-        // (e.g., attribute name like class, names, etc.). Can also be R_NilValue
-		kK(k)[i] = from_any_robject(TAG(s));
-        // value stored in the current node, it can be any R object: INTSXP, REALSXP, STRSXP, etc)
-		kK(v)[i] = from_any_robject(CAR(s));
-        // do to next node
-		s=CDR(s);
-	}
-	return xD(k,v);
-}
-
-/**
  * Create a 2 element list, first element is a dict of attributes, send element is the value
  */
 ZK addattR (K x,SEXP att)
 {
 	// attrs are pairlists: LISTSXP
-	K u = dictpairlist(att);
+	K u = from_pairlist_robject(att);
 	return knk(2,u,x);
 }
 
@@ -347,6 +357,11 @@ ZK from_logical_robject(SEXP sxp)
 	if (isNull(dim)) {
         // convert to boolean vector
         x = klogicv(len,LOGICAL(sxp));
+        //Dictionary with atom values
+        SEXP keyNames= getAttrib(sxp, R_NamesSymbol);
+        if(!isNull(keyNames)&&len==XLENGTH(keyNames))
+            return atom_value_dict(len, x, keyNames);
+        //Normal kdb+ list
 		return attR(x,sxp);
 	}
     x = klogica(len,length(dim),INTEGER(dim),LOGICAL(sxp));
@@ -403,6 +418,11 @@ ZK from_integer_robject(SEXP sxp)
 	SEXP dim = GET_DIM(sxp);
 	if (isNull(dim)) {
 		x = kintv(len,INTEGER(sxp));
+        //Dictionary with atom values
+        SEXP keyNames= getAttrib(sxp, R_NamesSymbol);
+        if(!isNull(keyNames)&&len==XLENGTH(keyNames))
+            return atom_value_dict(len, x, keyNames);
+        //Normal kdb+ list
 		return attR(x,sxp);
 	}
 	x = kinta(len,length(dim),INTEGER(dim),INTEGER(sxp));
@@ -550,7 +570,16 @@ ZK from_vector_robject(SEXP sxp)
 	for (i = 0; i < length; i++) {
 		xK[i] = from_any_robject(VECTOR_ELT(sxp, i));
 	}
-  return attR(x,sxp);
+    SEXP colNames= getAttrib(sxp, R_NamesSymbol);
+    if(!isNull(colNames)&&length==XLENGTH(colNames)) {
+        K k= ktn(KS, length);
+        for(i= 0; i < length; i++) {
+            const char *colName= CHAR(STRING_ELT(colNames, i));
+            kS(k)[i]= ss((S) colName);
+        }
+    return xD(k,x);
+    }
+    return attR(x,sxp);
 }
 
 /**

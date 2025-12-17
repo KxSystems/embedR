@@ -47,6 +47,20 @@ Rboolean isClass(const char *class_, SEXP s) {
   return FALSE;
 }
 
+static K from_date_robject(SEXP sxp) {
+  J length= XLENGTH(sxp);
+  K x= ktn(KD,length);
+  int type= TYPEOF(sxp);
+  switch(type) {
+    case INTSXP:
+      DO(length,kI(x)[i]=INTEGER(sxp)[i]-((INTEGER(sxp)[i]==ni)?0:kdbDateOffset));
+      break;
+    default:
+      DO(length,kI(x)[i]=ISNA(REAL(sxp)[i])?NA_INTEGER:(I)REAL(sxp)[i]-kdbDateOffset);
+  }
+  return x;
+}
+
 /**
  * Convert R object to K object
  */
@@ -54,6 +68,9 @@ ZK from_any_robject(SEXP sxp)
 {
 	K result = 0;
 	int type = TYPEOF(sxp);
+    if(isClass("Date", sxp)){
+        return from_date_robject(sxp);
+    }
 	switch (type) {
 	case NILSXP : return from_null_robject(sxp); break; 		/* nil = NULL */
 	case SYMSXP : return from_symbol_robject(sxp); break;    	/* symbols */

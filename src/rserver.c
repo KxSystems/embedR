@@ -47,7 +47,7 @@ Rboolean isClass(const char *class_, SEXP s) {
   return FALSE;
 }
 
-static K from_date_robject(SEXP sxp) {
+ZK from_date_robject(SEXP sxp) {
   J length= XLENGTH(sxp);
   K x= ktn(KD,length);
   int type= TYPEOF(sxp);
@@ -61,6 +61,49 @@ static K from_date_robject(SEXP sxp) {
   return x;
 }
 
+ZI kdbSecOffset = 946684800;
+ZI sec2day = 86400;
+
+ZK from_datetime_ct_robject(SEXP sxp) {
+  K x;
+  J length = XLENGTH(sxp);
+  x = ktn(KZ,length);
+  DO(length,kF(x)[i]=(F)(((REAL(sxp)[i]-kdbSecOffset)/sec2day)));
+  return x;
+}
+
+ZK from_datetime_lt_robject(SEXP sxp) {
+  K x;
+  J i, key_length= XLENGTH(sxp);
+  x= ktn(0, key_length);
+  for(i= 0; i < key_length; ++i)
+    kK(x)[i]= from_any_robject(VECTOR_ELT(sxp, i));
+  J element_length=kK(x)[0]->n;
+  K res=ktn(KZ, element_length);
+  for(i=0; i < element_length; i++){
+    //Relying on the order of tm key
+    struct tm dttm;
+    dttm.tm_sec  =kF(kK(x)[0])[i];
+    dttm.tm_min  =kI(kK(x)[1])[i];
+    dttm.tm_hour =kI(kK(x)[2])[i];
+    dttm.tm_mday =kI(kK(x)[3])[i];
+    dttm.tm_mon  =kI(kK(x)[4])[i];
+    dttm.tm_year =kI(kK(x)[5])[i];
+    dttm.tm_wday =kI(kK(x)[6])[i];
+    dttm.tm_yday =kI(kK(x)[7])[i];
+    dttm.tm_isdst=kI(kK(x)[8])[i];
+    kF(res)[i]=(((F)mktime(&dttm)-kdbSecOffset)/sec2day);
+  }
+  return res;
+}
+
+ZK from_datetime_robject(SEXP sxp) {
+  if(isClass("POSIXct", sxp))
+    return from_datetime_ct_robject(sxp);
+  else
+    return from_datetime_lt_robject(sxp);
+}
+
 /**
  * Convert R object to K object
  */
@@ -70,6 +113,9 @@ ZK from_any_robject(SEXP sxp)
 	int type = TYPEOF(sxp);
     if(isClass("Date", sxp)){
         return from_date_robject(sxp);
+    }
+    if(isClass("POSIXt", sxp)){
+        return from_datetime_robject(sxp);
     }
 	switch (type) {
 	case NILSXP : return from_null_robject(sxp); break; 		/* nil = NULL */

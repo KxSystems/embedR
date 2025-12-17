@@ -180,10 +180,10 @@ Rset["a";0Nd];         / date
 t)0Nd~first Rget"a"
 Rset["a";2000.01.01 0N 2000.01.02];
 t)(2000.01.01 0N 2000.01.02)~Rget"a"
-Rset["a";0Nz];         / TODO datetime
-t)0Np~first Rget"a"
+Rset["a";0Nz];         / datetime
+t)0Nz~first Rget"a"
 Rset["a";2025.07.26T00:00:00.000 0N 2025.07.26T00:00:00.001];
-t)(2025.07.26D00:00:00.000000000 0N 2025.07.26D00:00:00.001000192)~Rget"a"
+t)(2025.07.26T00:00:00.000 0N 2025.07.26T00:00:00.001)~Rget"a"
 Rset["a";0Nn];         / TODO timespan
 / t)(-9.223372e+09)~first Rget"a"
 Rset["a";00:00:00.000000001 0N 00:00:00.000000002];
@@ -234,10 +234,10 @@ Rset["a";0Wd];        / date
 t)0Wd~first Rget"a"
 Rset["a";2000.01.01 0W 2000.01.02];
 t)(2000.01.01 0W 2000.01.02)~Rget"a"
-Rset["a";0Wz];        / TODO datetime
-t)2262.04.11D23:47:16.854775807~first Rget"a"
+Rset["a";0Wz];        / datetime
+t)0Wz~first Rget"a"
 Rset["a";2025.07.26T00:00:00.000 0W 2025.07.26T00:00:00.001];
-t)(2025.07.26D00:00:00.000000000 2262.04.11D23:47:16.854775807 2025.07.26D00:00:00.001000192)~Rget"a"
+t)(2025.07.26T00:00:00.000 0w 2025.07.26T00:00:00.001)~Rget"a"
 Rset["a";0Wn];        / TODO timespan
 / t)(9.223372e+09)~first Rget"a"
 Rset["a";00:00:00.000000001 0W 00:00:00.000000002];
@@ -400,12 +400,12 @@ t)(2005.12.31 2005.12.31)~Rget"rep(as.Date('2005-12-31'),2)"
 
 // datetime
 Rcmd"Sys.setenv(TZ='UTC')";
-t)not (enlist 2018.02.18T04:00:01.000z)~Rget"as.POSIXct(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"   / TODO !!!!!
-t)not (enlist 2018.02.18T04:00:01.000z)~Rget"as.POSIXlt(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"   / TODO !!!!!
-t)not (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)~Rget"c(as.POSIXct(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXct(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"   / TODO !!!!!
-t)not (2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)~Rget"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXlt(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"   / TODO !!!!!
+t)(enlist 2018.02.18T04:00:01.000z)~Rget"as.POSIXct(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"
+t)(enlist 2018.02.18T04:00:01.000z)~Rget"as.POSIXlt(\"2018-02-18 04:00:01\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC')"
+t)(2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)~Rget"c(as.POSIXct(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXct(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))" 
+t)(2015.03.16T17:30:00.000z; 1978.06.01T12:30:59.000z)~Rget"c(as.POSIXlt(\"2015-03-16 17:30:00\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'), as.POSIXlt(\"1978-06-01 12:30:59\", format=\"%Y-%m-%d %H:%M:%S\", tz='UTC'))"
 Rset["dttm"; 2018.02.18T04:00:01.000z];  
-t)not (enlist 2018.02.18T04:00:01.000z)~Rget"dttm"      / TODO !!!!!
+t)(enlist 2018.02.18T04:00:01.000z)~Rget"dttm"
 
 // days
 Rset["days"; 1D 2D]

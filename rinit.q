@@ -9,7 +9,6 @@ Rget:{r:Rget0 x;Rconv r}
 Rset:{Rset0[x;y]}
 
 Rconvmap:()!()
-Rconvmap[enlist "POSIXt"]:{(-10957D)+`timestamp$1e9*last x}
 Rconvmap[enlist "data.frame"]:{
   a:first x;if[0=count a`names;:last x];
   r:flip ((),`$a`names)!Rconv each  last x;

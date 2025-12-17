@@ -264,10 +264,10 @@ Rset["a";([]a:1 2 3;b:1 2 3)]
 t)"data.frame"~Rget"class(a)"
 
 a:Rget "wilcox.test(c(1,2,3),c(4,5,6))"
-t)"c(1, 2, 3) and c(4, 5, 6)"~last last a
+t)"c(1, 2, 3) and c(4, 5, 6)"~last a
 Rcmd "data(OrchardSprays)"
 a:Rget "OrchardSprays"
-t)flip[`decrease`rowpos`colpos`treatment`row.names!(57 95 8 69 92 90 15 2 84 6 127 36 51 2 69 71 87 72 5 39 22 16 72 4 130 4 114 9 20 24 10 51 43 28 60 5 17 7 81 71 12 29 44 77 4 27 47 76 8 72 13 57 4 81 20 61 80 114 39 14 86 55 3 19f;1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8f;1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 6 6 6 6 6 6 6 6 7 7 7 7 7 7 7 7 8 8 8 8 8 8 8 8f;`D`E`B`H`G`F`C`A`C`B`H`D`E`A`F`G`F`H`A`E`D`C`G`B`H`A`E`C`F`G`B`D`E`D`G`A`C`B`H`F`A`C`F`G`B`D`E`H`B`G`C`F`A`H`D`E`G`F`D`B`H`E`A`C;1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64)]~a 
+t)flip[`decrease`rowpos`colpos`treatment!(57 95 8 69 92 90 15 2 84 6 127 36 51 2 69 71 87 72 5 39 22 16 72 4 130 4 114 9 20 24 10 51 43 28 60 5 17 7 81 71 12 29 44 77 4 27 47 76 8 72 13 57 4 81 20 61 80 114 39 14 86 55 3 19f;1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8f;1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 6 6 6 6 6 6 6 6 7 7 7 7 7 7 7 7 8 8 8 8 8 8 8 8f;`D`E`B`H`G`F`C`A`C`B`H`D`E`A`F`G`F`H`A`E`D`C`G`B`H`A`E`C`F`G`B`D`E`D`G`A`C`B`H`F`A`C`F`G`B`D`E`H`B`G`C`F`A`H`D`E`G`F`D`B`H`E`A`C)]~a 
 
 // to install package in non-interactive way
 // install.packages("zoo", repos="http://cran.r-project.org")
@@ -276,16 +276,15 @@ Rget"install.packages";
 t)"bytecode"~last last Rget "getGeneric('+')"  
 t)(1 2 3 4 5 6 7 8 9 10i)~Rget"1:10"
 // data.frame
-t)flip[`a`b`row.names!(1 2 3i;(enlist "a";enlist "b";enlist "c");1 2 3)]~Rget"data.frame(a=1:3, b=c('a','b','c'))"
-t)flip[`a`b`row.names!(1 2 3i;(enlist "a";enlist "b";enlist "c");1 2 3)]~Rget"data.frame(a=1:3, b=c('a','b','c'),stringsAsFactors=FALSE)"
-t)flip[`a`row.names!(1 2 3i;1 2 3)]~Rget"data.frame(a=1:3)"
+t)flip[`a`b!(1 2 3i;(enlist "a";enlist "b";enlist "c"))]~Rget"data.frame(a=1:3, b=c('a','b','c'))"
+t)flip[`a`b!(1 2 3i;(enlist "a";enlist "b";enlist "c"))]~Rget"data.frame(a=1:3, b=c('a','b','c'),stringsAsFactors=FALSE)"
+t)flip[(enlist `a)!enlist (1 2 3i)]~Rget"data.frame(a=1:3)"
 
 //lang
 t)"formula"~first first first Rget "list(x ~ y + z)" // TODO
 t)"Instrument"~last first first Rget "Instrument <- setRefClass(Class='Instrument',fields=list('id'='character', 'description'='character'))"
-t)"getId"~first first first Rget "Instrument$accessors(c('id', 'description'))"
-t)"environment"~(first Rget "Instrument$new(id='AAPL', description='Apple')")`.xData
-t)"Instrument"~last (first Rget "Instrument$new(id='AAPL', description='Apple')")`class
+t)`getId~first key Rget "Instrument$accessors(c('id', 'description'))"
+t)"environment"~first first Rget "Instrument$new(id='AAPL', description='Apple')"
 
 // long vectors
 t)all {@[Rget;x;"type"~]}each (.z.p;0b;1;1f;{};([1 2 3]1 2 3))
@@ -301,16 +300,16 @@ t)("aa";"bb";"cc")~Rget`a
 Rinstall`data.table;
 Rcmd"library(data.table)";
 Rcmd"a<-data.frame(a=c(1,2))";
-t)flip[`a`row.names!(1 2f;1 2)]~Rget`a
+t)flip[(enlist `a)!enlist 1 2f]~Rget`a
 Rcmd "b<-data.table(a=c(1,2))";
-t)flip[`a`row.names!(1 2f;1 2)]~Rget`b
+t)flip[(enlist `a)!enlist 1 2f]~Rget`b
 Rcmd"inspect <- function(x, ...) .Internal(inspect(x,...))"
 t)(`...)~last last last Rget`inspect
 t)(`log;enlist 1f)~Rget"substitute(log(1))"
 
-t)flip[`a`b`row.names!(`1`2`1;(enlist "a";enlist"b";enlist"b");1 2 3)]~Rget"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"
-t)flip[`a`b`row.names!(`1`2`1;(enlist "a";enlist "b";enlist "b");1 2 3)]~Rget"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"
-t)flip[`a`b`row.names!(`1`2`1;`10`20`30;1 2 3)]~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"
+t)flip[`a`b!(`1`2`1;(enlist "a";enlist"b";enlist"b"))]~Rget"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"
+t)flip[`a`b!(`1`2`1;(enlist "a";enlist "b";enlist "b"))]~Rget"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"
+t)flip[`a`b!(`1`2`1;`10`20`30)]~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"
 
 Rset[`tmp;0x0101];
 t)0x0101~Rget`tmp
@@ -366,20 +365,19 @@ t)(enlist 0x0a)~Rget"as.raw(10)"
 t)(100b)~Rget"as.logical(c(1,FALSE,NA))"
 
 // Table Test
-
-t)not (flip `a`b!(1 2 3i;`a`b`c))~Rget"data.frame(a=1:3, b=c('a','b','c'),stringsAsFactors=TRUE)"     / TODO !!!!!!
-t)not (flip `a`b!(1 2 3i;1#/:("a";"b";"c")))~Rget"data.frame(a=1:3, b=c('a','b','c'),stringsAsFactors=FALSE)"  / TODO !!!!!!
-t)not (flip enlist[`a]!enlist (1 2 3i))~Rget"data.frame(a=1:3)"           / TODO !!!!!!
+t)(flip `a`b!(1 2 3i;`a`b`c))~Rget"data.frame(a=1:3, b=c('a','b','c'),stringsAsFactors=TRUE)"
+t)(flip `a`b!(1 2 3i;1#/:("a";"b";"c")))~Rget"data.frame(a=1:3, b=c('a','b','c'),stringsAsFactors=FALSE)"
+t)(flip enlist[`a]!enlist (1 2 3i))~Rget"data.frame(a=1:3)"
 t)()~Rget"data.frame()"
 
 // Dictionary Test
 
 Rset["dictI";`a`b`c!1 2 3i];
-t)not (`a`b`c!1 2 3i)~Rget"dictI"        / TODO !!!!!!!
+t)(`a`b`c!1 2 3i)~Rget"dictI"      
 Rset["dictJ"; `a`b`c!1 2 3];
 t)not (`a`b`c!1 2 3)~Rget"dictJ"          / TODO !!!!!
 Rset["dictB"; `a`b`c!101b];
-t)not (`a`b`c!101b)~Rget"dictB"           / TODO !!!!!!
+t)(`a`b`c!101b)~Rget"dictB"
 Rset["dictP"; `a`b`c!(2020.04.13D06:08:03.712336000; 2020.04.13D06:08:03.712336001; 2020.04.13D06:08:03.712336002)];
 t)not (`a`b`c!(2020.04.13D06:08:03.712336000; 2020.04.13D06:08:03.712336001; 2020.04.13D06:08:03.712336002))~Rget"dictP"   / TODO !!!!!
 
@@ -451,12 +449,12 @@ t)(enlist 1;enlist 1;enlist 1;enlist 1)~Rget each ("x";enlist "x";`x;`x`x)
 
 // General Test
 Rcmd"a<-data.frame(a=c(1,2))"
-t)not (flip enlist[`a]!enlist (1 2f))~Rget"a"   / TODO !!!!!!
+t)(flip enlist[`a]!enlist (1 2f))~Rget"a"
 Rcmd"b<-data.table(a=c(1,2))"
-t)not (flip enlist[`a]!enlist (1 2f))~Rget"b"   / TODO !!!!!!
-t)not (flip[`a`b!(`1`2`1;`a`b`b)])~Rget"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"),stringsAsFactors=TRUE)"  / TODO !!!!!!
-t)not (flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))])~Rget"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"      / TODO !!!!!!
-t)not (flip[`a`b!(`1`2`1;`10`20`30)])~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"           / TODO !!!!!!
+t)(flip enlist[`a]!enlist (1 2f))~Rget"b"
+t)(flip[`a`b!(`1`2`1;`a`b`b)])~Rget"data.frame(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"),stringsAsFactors=TRUE)"
+t)(flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))])~Rget"data.table(a=as.factor(c(1,2,1)), b=c(\"a\",\"b\",\"b\"))"
+t)(flip[`a`b!(`1`2`1;`10`20`30)])~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"
 / t)all {.[Rset;("x"; x);"main thread only"~]} peach 2#enlist ([]1 2)   / TODO !!!!!!
 
 \\

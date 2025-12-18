@@ -15,30 +15,37 @@ Ropen;    // pass 1 for verbose mode
 / set data type bool
 Rset["a";0b];
 t)"logical"~Rget"class(a)"
+t)0b~first Rget"a"
 Rset["a";0101b];
 t)"logical"~Rget"class(a)"
+t)0101b~Rget"a"
 t)4i~first Rget"length(a)"
 Rcmd"x <- array(c(TRUE, FALSE, TRUE, FALSE), dim = 4L)";
 t)(1010b)~Rget"x"
 
 / set data type guid
-Rset["a";first 1?0Ng]
+Rset["a";a:first 1?0Ng]
 t)"character"~Rget"class(a)"
-Rset["a";first 2?0Ng]
+t)(string a)~Rget"a"
+Rset["a";a:first 2?0Ng]
 t)"character"~Rget"class(a)"
 t)36i~first Rget"nchar(a)"
 
 / set data type byte
 Rset["a";0x01];
 t)"raw"~Rget"class(a)"
+t)(enlist 0x01)~Rget"a"
 Rset["a";0x0102];
+t)0x0102~Rget"a"
 t)"raw"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
 / set data type short
 Rset["a";1h];
 t)"integer"~Rget"class(a)"
+t)(enlist 1i)~Rget"a"
 Rset["a";1 2h];
+t)(1 2i)~Rget"a"
 t)"integer"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
@@ -54,21 +61,27 @@ t)("i"$1+til 10)~Rget"x"
 / set data type long
 Rset["a";1];
 t)"integer64"~Rget"class(a)"
+t)1~first Rget"a"
 Rset["a";1 2];
+t)(1 2)~Rget"a"
 t)"integer64"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
 / set data type real
 Rset["a";1.1e];
+t)"1.1"~string first Rget"a"
 t)"numeric"~Rget"class(a)"
 Rset["a";1.1 2.2e];
+t)("1.1";"2.2")~string Rget"a"
 t)"numeric"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
 / set data type float
 Rset["a";1.1];
 t)"numeric"~Rget"class(a)"
+t)"1.1"~string first Rget"a"
 Rset["a";1.1 2.2];
+t)("1.1";"2.2")~string Rget"a"
 t)"numeric"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 Rcmd"x <- array(c(1.1,2.2,3.3), dim = 3L)";
@@ -76,70 +89,92 @@ t)(1.1 2.2 3.3)~Rget"x"
 
 / set data type char
 Rset["a";"a"];
+t)(enlist "a")~Rget"a"
 t)"character"~Rget"class(a)"
 Rset["a";"ab"];
+t)"ab"~Rget"a"
 t)"character"~Rget"class(a)"
 t)2i~first Rget"nchar(a)"
 
 / set data type symbol
 Rset["a";`aa];
 t)"character"~Rget"class(a)"
+t)("aa")~Rget"a"
+Rset["a";`a];
+t)(enlist "a")~Rget"a"
 Rset["a";`aa`bb];
+t)("aa";"bb")~Rget"a"
 t)"character"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
 / set data type timestamp
 Rset["a";2025.07.26D23:59:59.998999999]
 t)"nanotime"~last Rget"class(a)"
+t)2025.07.26D23:59:59.998999999~first Rget"a"
 Rset["a";2025.07.26D23:59:59.998999999 2025.07.26D23:59:59.998999988]
 t)"nanotime"~last Rget"class(a)"
+t)(2025.07.26D23:59:59.998999999 2025.07.26D23:59:59.998999988)~Rget"a"
 
 / set data type month
 Rset["a";2001.01m]
 t)"integer"~Rget"class(a)"
+t)12i~first Rget"a"
 Rset["a";2001.01 2001.02m]
+t)(12 13i)~Rget"a"
 t)"integer"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 
 / set data type date
 Rset["a";2000.01.01]
 t)"Date"~Rget"class(a)"
+t)2000.01.01~first Rget"a"
 Rset["a";2000.01.01 2000.01.02]
 t)"Date"~Rget"class(a)"
 t)2i~first Rget"length(a)"
+t)(2000.01.01 2000.01.02)~Rget"a"
 
 / set data type datetime (depreciated)
 Rset["a";2025.07.26T00:00:00.000]
 t)("POSIXt";"POSIXct")~Rget"class(a)"
+t)2025.07.26T00:00:00.000~first Rget"a"
 Rset["a";2025.07.26T00:00:00.001 2025.07.26T00:00:00.002]
 t)("POSIXt";"POSIXct")~Rget"class(a)"
 t)2i~first Rget"length(a)"
+t)(2025.07.26T00:00:00.001 2025.07.26T00:00:00.002)~Rget"a"
 
 / set data type timespan
 Rset["a";00:00:00.000000001]
 t)"numeric"~Rget"class(a)"
+t)1e-09~first Rget"a"
 Rset["a";00:00:00.000000001 00:00:00.000000002]
 t)"numeric"~Rget"class(a)"
 t)2i~first Rget"length(a)"
+t)(1e-09 2e-09)~Rget"a"
 
 / set data type minute
 Rset["a";00:01]
 t)"integer"~Rget"class(a)"
+t)1i~first Rget"a"
 Rset["a";00:01 00:02]
 t)"integer"~Rget"class(a)"
 t)2i~first Rget"length(a)"
+t)(1 2i)~Rget"a"
 
 / set data type second
 Rset["a";00:00:01]
 t)"integer"~Rget"class(a)"
+t)1i~first Rget"a"
 Rset["a";00:00:01 00:00:02]
 t)"integer"~Rget"class(a)"
 t)2i~first Rget"length(a)"
+t)(1 2i)~Rget"a"
 
 / set data type time
 Rset["a";00:00:00.002]
 t)"integer"~Rget"class(a)"
+t)2i~first Rget"a"
 Rset["a";00:00:00.002 00:00:00.003]
+t)(2 3i)~Rget"a"
 t)"integer"~Rget"class(a)"
 t)2i~first Rget"length(a)"
 

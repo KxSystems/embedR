@@ -797,4 +797,24 @@ K rset(K x,K y) {
 	return (K)0;
 }
 
+K rcmdp(K x,K y){
+    if(!RLOAD) return krr("main thread only");
+    if (ROPEN < 0) ropen(NULL);
+    SEXP val,call,res;
+    int error;
+    char rerr[256];
+    char *name = getkstring(x);
+    PROTECT(val = from_any_kobject(y));
+    PROTECT(call = Rf_lang2(Rf_install(name), val ));
+    res = R_tryEval(call, R_GlobalEnv, &error);
+    UNPROTECT(2);
+    if (error) {
+        snprintf(rerr,sizeof(rerr),"run error: %s",R_curErrorBuf());
+        return krr(rerr);
+    }
+    K r=from_any_robject(res);
+    R_ProcessEvents();
+    return r;
+}
+
 __attribute__((constructor)) V __attach(V) {RLOAD=1;}

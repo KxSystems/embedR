@@ -492,4 +492,6 @@ t)(flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))])~Rget"data.table(a=as.factor(c(1,2,1)),
 t)(flip[`a`b!(`1`2`1;`10`20`30)])~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"
 / t)all {.[Rset;("x"; x);"main thread only"~]} peach 2#enlist ([]1 2)   / TODO !!!!!!
 
+t)4i~Rcmdp["max";"i"$til 5]
+
 \\

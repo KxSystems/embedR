@@ -47,17 +47,23 @@ Rboolean isClass(const char *class_, SEXP s) {
   return FALSE;
 }
 
+ZI get_date(I type,SEXP sxp,I i){
+    if(type==INTSXP){
+        i=INTEGER(sxp)[i];
+        R i-(i==ni?0:kdbDateOffset);
+    }
+    F f=REAL(sxp)[i];
+    R ISNA(f)?NA_INTEGER:(I)f-kdbDateOffset;
+}
+
 ZK from_date_robject(SEXP sxp) {
   J length= XLENGTH(sxp);
-  K x= ktn(KD,length);
   int type= TYPEOF(sxp);
-  switch(type) {
-    case INTSXP:
-      DO(length,kI(x)[i]=INTEGER(sxp)[i]-((INTEGER(sxp)[i]==ni)?0:kdbDateOffset));
-      break;
-    default:
-      DO(length,kI(x)[i]=ISNA(REAL(sxp)[i])?NA_INTEGER:(I)REAL(sxp)[i]-kdbDateOffset);
+  if (length==1){
+      return kd(get_date(type,sxp,0));
   }
+  K x=ktn(KD,length);
+  DO(length,kI(x)[i]=get_date(type,sxp,i))
   return x;
 }
 
@@ -76,36 +82,52 @@ ZK atom_value_dict(J len, K v, SEXP keys){
 ZI kdbSecOffset = 946684800;
 ZI sec2day = 86400;
 
+ZF get_datetime_ct(F f){
+    return (f-kdbSecOffset)/sec2day;
+}
+
 ZK from_datetime_ct_robject(SEXP sxp) {
   K x;
   J length = XLENGTH(sxp);
+  if (length==1){
+      return kz(get_datetime_ct(REAL(sxp)[0]));
+  }
   x = ktn(KZ,length);
-  DO(length,kF(x)[i]=(F)(((REAL(sxp)[i]-kdbSecOffset)/sec2day)));
+  DO(length,kF(x)[i]=get_datetime_ct(REAL(sxp)[i]));
   return x;
 }
 
+ZF get_datetime_lt(K x,I i){
+    //Relying on the order of tm key
+    struct tm dttm;
+    dttm.tm_sec  =kK(x)[0]->t==KF?kF(kK(x)[0])[i]:kK(x)[0]->f;
+    dttm.tm_min  =kK(x)[1]->t==KI?kI(kK(x)[1])[i]:kK(x)[1]->i;
+    dttm.tm_hour =kK(x)[2]->t==KI?kI(kK(x)[2])[i]:kK(x)[2]->i;
+    dttm.tm_mday =kK(x)[3]->t==KI?kI(kK(x)[3])[i]:kK(x)[3]->i;
+    dttm.tm_mon  =kK(x)[4]->t==KI?kI(kK(x)[4])[i]:kK(x)[4]->i;
+    dttm.tm_year =kK(x)[5]->t==KI?kI(kK(x)[5])[i]:kK(x)[5]->i;
+    dttm.tm_wday =kK(x)[6]->t==KI?kI(kK(x)[6])[i]:kK(x)[6]->i;
+    dttm.tm_yday =kK(x)[7]->t==KI?kI(kK(x)[7])[i]:kK(x)[7]->i;
+    dttm.tm_isdst=kK(x)[8]->t==KI?kI(kK(x)[8])[i]:kK(x)[8]->i;
+    return (((F)mktime(&dttm)-kdbSecOffset)/sec2day);
+}
+
 ZK from_datetime_lt_robject(SEXP sxp) {
-  K x;
+  K x,res;
   J i, key_length= XLENGTH(sxp);
   x= ktn(0, key_length);
   for(i= 0; i < key_length; ++i)
     kK(x)[i]= from_any_robject(VECTOR_ELT(sxp, i));
-  J element_length=kK(x)[0]->n;
-  K res=ktn(KZ, element_length);
-  for(i=0; i < element_length; i++){
-    //Relying on the order of tm key
-    struct tm dttm;
-    dttm.tm_sec  =kF(kK(x)[0])[i];
-    dttm.tm_min  =kI(kK(x)[1])[i];
-    dttm.tm_hour =kI(kK(x)[2])[i];
-    dttm.tm_mday =kI(kK(x)[3])[i];
-    dttm.tm_mon  =kI(kK(x)[4])[i];
-    dttm.tm_year =kI(kK(x)[5])[i];
-    dttm.tm_wday =kI(kK(x)[6])[i];
-    dttm.tm_yday =kI(kK(x)[7])[i];
-    dttm.tm_isdst=kI(kK(x)[8])[i];
-    kF(res)[i]=(((F)mktime(&dttm)-kdbSecOffset)/sec2day);
+  J element_length=kK(x)[0]->t==KF?kK(x)[0]->n:1;
+  if(element_length==1){
+      res=kz(get_datetime_lt(x,0));
+  }else{
+      res=ktn(KZ, element_length);
+      for(i=0; i < element_length; i++){
+          kF(res)[i]=get_datetime_lt(x,i);
+      }
   }
+  r0(x);
   return res;
 }
 
@@ -235,6 +257,9 @@ ZK from_nyi_robject(S marker, SEXP sxp){
  */
 ZK from_raw_robject(SEXP sxp)
 {
+    if (XLENGTH(sxp)==1){
+        return kg(RAW(sxp)[0]);
+    }
 	K x = ktn(KG,XLENGTH(sxp));
 	DO(xn,kG(x)[i]=RAW(sxp)[i])
 	return x;
@@ -312,6 +337,9 @@ ZK from_char_robject(SEXP sxp)
  * Convert to boolean vector
  */
 ZK klogicv(J len, int *val) {
+  if(len==1){
+      R kb(*val);
+  }
   K x= ktn(KB, len);
   DO(len, kG(x)[i]= (val)[i]);
   return x;
@@ -381,6 +409,9 @@ ZK from_logical_robject(SEXP sxp)
  */
 ZK kintv(J len, int *val)
 {
+    if(len==1){
+        R ki(*val);
+    }
 	K x = ktn(KI, len);
 	DO(len,kI(x)[i]=(val)[i]);
 	return x;
@@ -442,6 +473,9 @@ ZK from_integer_robject(SEXP sxp)
  */
 ZK klongv(J len, J*val)
 {
+    if(len==1){
+        R kj(*val);
+    }
     K x = ktn(KJ, len);
     DO(len,kJ(x)[i]=(val)[i]);
     return x;
@@ -479,6 +513,9 @@ ZK klonga(J len, int rank, int *shape, J*val) {
  */
 ZK kdoublev(J len, double *val)
 {
+    if(len==1){
+        R kf(*val);
+    }
 	K x = ktn(KF, len);
 	DO(len,kF(x)[i]=(val)[i]);
 	return x;
@@ -506,6 +543,10 @@ ZK kdoublea(J len, int rank, int *shape, double *val)
 	return x;
 }
 
+ZJ get_nano(J t){
+    R t-(t==nj?0:epoch_offset);
+}
+
 /**
  * Convert R real (double) object to K float/long/timestamp objects
  */
@@ -519,8 +560,11 @@ ZK from_double_robject(SEXP sxp)
         if (bit64)
             return klongv(len,(J*)REAL(sxp));
         if (isClass("nanotime",sxp)){
+            if(len==1){
+                R ktj(-KP,get_nano(INT64(sxp)[0]));
+            }
             x=ktn(KP,len);
-            DO(len,kJ(x)[i]=INT64(sxp)[i]-(INT64(sxp)[i]==nj?0:epoch_offset))
+            DO(len,kJ(x)[i]=get_nano(INT64(sxp)[i]));
             return x;
         }
         x = kdoublev(len,REAL(sxp));

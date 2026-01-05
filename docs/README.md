@@ -6,19 +6,53 @@
 
 ---
 
-A KX [Fusion interface](https://code.kx.com/q/interfaces)
-
 This package is used to invoke R from q for both 32- and 64-bit builds. If the appropriate build is not available on your target system, build instructions are available in the `README.md` for this repository
 
 A shared library can be loaded which brings R into the q memory space,
 meaning all the R statistical routines and graphing capabilities can be invoked directly from q.
 Using this method means data is not passed between remote processes. The library has the following methods:
 
--   `Ropen`: open R
+-   `Ropen`: Initialise embedded R. Optional, as calling an function will also initialise embedded R if not previously called.
+
+    ```q
+    Ropen x
+    ```
+    Setting `x` to 1 enables verbose mode. Default is 0.
+
 -   `Rcmd`: run an R command, do not return a result
--   `Rfunc`: run an R func with q parameter values (an alternative to `Rcmd`)
+
+    ```q
+    Rcmd x
+    ```
+    where `x` is the R code to execute (string or symbol). Returns null.
+
 -   `Rget`: run an R command, return the result to q
+
+     ```q
+     Rget x
+     ```
+     where `x` is the R code to execute (string or symbol). Returns the resulting output from the R code. For example, calling the R substr function
+
 -   `Rset`: set a variable in the R memory space
+
+    ```q
+    Rset[x;y]
+    ```
+    where `x` is the name of the variable name (string or symbol) and `y` is the value to associate with the variable `x`. Returns null.
+
+-   `Rfunc`: run an R func with q parameter values (an alternative to `Rcmd` and `Rget`)
+
+     ```q
+     Rfunc[x;y]
+     ```
+     where `x` is the name of the function (string or symbol) and `y` is a list of parameters. Returns the resulting output from the R code. For example, calling the R substr function
+     ```q
+     Rfunc["substr";("text";1i;2i)]
+     ```
+     Calling R `max` function with a list of 5 integers
+     ```q
+     Rfunc["max";enlist "i"$til 5]
+     ```
 
 The `R_HOME` environment variable must be set prior to starting q.
 To find out what that should be, run R from the Bash shell and see the result of `R.home()`

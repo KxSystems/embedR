@@ -28,10 +28,11 @@ export R_HOME=`R RHOME`
 for /f "delims=" %a in ('R RHOME') do @set R_HOME=%a
 ```
 
-The library has four main methods:
+The library has the following methods:
 
 - `Ropen`: Initialise embedded R. Optional to call. Allows to set verbose mode as `Ropen 1`.
 - `Rcmd`: run an R command, do not return a result
+- `Rfunc`: run an R func with q parameter values (an alternative to `Rcmd`)
 - `Rget`: run an R command, return the result to q
 - `Rset`: set a variable in the R memory space
 

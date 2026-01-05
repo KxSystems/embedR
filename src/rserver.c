@@ -797,22 +797,33 @@ K rset(K x,K y) {
 	return (K)0;
 }
 
-K rcmdp(K x,K y){
+K rfunc(K x,K y){
     if(!RLOAD) return krr("main thread only");
     if (ROPEN < 0) ropen(NULL);
-    SEXP val,call,res;
+    if (y->t) return krr("type");
+    SEXP call,res,args = R_NilValue;
     int error;
     char rerr[256];
     char *name = getkstring(x);
-    PROTECT(val = from_any_kobject(y));
-    PROTECT(call = Rf_lang2(Rf_install(name), val ));
-    res = R_tryEval(call, R_GlobalEnv, &error);
-    UNPROTECT(2);
+    if (y->n) {
+        PROTECT(args = Rf_allocList(y->n));
+        SEXP node = args;
+        for (R_xlen_t i = 0; i < y->n; ++i) {
+            SEXP val = PROTECT(from_any_kobject(kK(y)[i]));
+            SETCAR(node, val);
+            node = CDR(node);
+            UNPROTECT(1); // val
+        }
+    }
+    PROTECT(call = Rf_lcons(Rf_install(name), args));
+    PROTECT(res = R_tryEval(call, R_GlobalEnv, &error));
     if (error) {
         snprintf(rerr,sizeof(rerr),"run error: %s",R_curErrorBuf());
+        UNPROTECT(2+!!(y->n));
         return krr(rerr);
     }
     K r=from_any_robject(res);
+    UNPROTECT(2+!!(y->n));
     R_ProcessEvents();
     return r;
 }

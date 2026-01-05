@@ -12,10 +12,11 @@ This package is used to invoke R from q for both 32- and 64-bit builds. If the a
 
 A shared library can be loaded which brings R into the q memory space,
 meaning all the R statistical routines and graphing capabilities can be invoked directly from q.
-Using this method means data is not passed between remote processes. The library has five methods:
+Using this method means data is not passed between remote processes. The library has the following methods:
 
 -   `Ropen`: open R
 -   `Rcmd`: run an R command, do not return a result
+-   `Rfunc`: run an R func with q parameter values (an alternative to `Rcmd`)
 -   `Rget`: run an R command, return the result to q
 -   `Rset`: set a variable in the R memory space
 

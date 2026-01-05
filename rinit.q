@@ -4,11 +4,11 @@ Ropen:`embedr 2:(`ropen;1)
 Rcmd0:`embedr 2:(`rcmd;1)
 Rget0:`embedr 2:(`rget;1)
 Rset0:`embedr 2:(`rset;2)
-Rcmdp0:`embedr 2:(`rcmdp;2)
+Rfunc0:`embedr 2:(`rfunc;2)
 Rcmd:Rcmd0
 Rget:Rget0
 Rset:Rset0
-Rcmdp:Rcmdp0
+Rfunc:Rfunc0
 
 Rinstall:{[pkg] 
   pkg:$[-11=type pkg;string pkg;pkg];rcloud:"https://cloud.r-project.org";

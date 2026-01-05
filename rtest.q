@@ -492,6 +492,12 @@ t)(flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))])~Rget"data.table(a=as.factor(c(1,2,1)),
 t)(flip[`a`b!(`1`2`1;`10`20`30)])~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"
 / t)all {.[Rset;("x"; x);"main thread only"~]} peach 2#enlist ([]1 2)   / TODO !!!!!!
 
-t)4i~Rcmdp["max";"i"$til 5]
+t)4i~Rfunc["max";enlist "i"$til 5]
+Rcmd["my_function <- function(fname) {paste(fname, \"string2\")}"];
+t)"string1 string2"~Rfunc["my_function";enlist "string1"]
+t)"string1 string2"~Rfunc["paste";("string1";"string2")]
+t)"te"~Rfunc["substr";("text";1i;2i)]
+Rcmd["my_function <- function(x) {return (5)}"];
+t)5f~Rfunc["my_function";()]
 
 \\

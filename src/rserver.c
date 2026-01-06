@@ -797,15 +797,60 @@ K rset(K x,K y) {
 	return (K)0;
 }
 
+static K vec_list(K x,I i){return r1(kK(x)[i]);}
+static K vec_bool(K x,I i){return kb(kG(x)[i]);}
+static K vec_guid(K x,I i){return ku(kU(x)[i]);}
+static K vec_byte(K x,I i){return kg(kG(x)[i]);}
+static K vec_short(K x,I i){return kh(kH(x)[i]);}
+static K vec_int(K x,I i){return ki(kI(x)[i]);}
+static K vec_long(K x,I i){return kj(kJ(x)[i]);}
+static K vec_real(K x,I i){return ke(kE(x)[i]);}
+static K vec_double(K x,I i){return kf(kF(x)[i]);}
+static K vec_char(K x,I i){return kc(kC(x)[i]);}
+static K vec_sym(K x,I i){return ks(kS(x)[i]);}
+static K vec_timestamp(K x,I i){return ktj(-KP,kJ(x)[i]);}
+static K vec_month(K x,I i){K r=ki(kI(x)[i]);r->t=-KM;return r;}
+static K vec_date(K x,I i){return kd(kI(x)[i]);}
+static K vec_datetime(K x,I i){return kz(kF(x)[i]);}
+static K vec_timespan(K x,I i){return ktj(-KN,kJ(x)[i]);}
+static K vec_minute(K x,I i){K r=ki(kI(x)[i]);r->t=-KU;return r;}
+static K vec_second(K x,I i){K r=ki(kI(x)[i]);r->t=-KV;return r;}
+static K vec_time(K x,I i){return kt(kI(x)[i]);}
+
+typedef K(*k_vec_function)(K,I);
+
+static k_vec_function k_types[] = {
+    vec_list,
+    vec_bool,
+    vec_guid,
+    vec_byte, // not used, placeholder
+    vec_byte,
+    vec_short,
+    vec_int,
+    vec_long,
+    vec_real,
+    vec_double,
+    vec_char,
+    vec_sym,
+    vec_timestamp,
+    vec_month,
+    vec_date,
+    vec_datetime,
+    vec_timespan,
+    vec_minute,
+    vec_second,
+    vec_time
+};
+
 K rfunc(K x,K y){
     if(!RLOAD) return krr("main thread only");
     if (ROPEN < 0) ropen(NULL);
-    if (y->t!=XT&&y->t!=XD&&y->t>0) return krr("type");
+    if (y->t!=XT&&y->t!=XD&&abs(y->t)>KT) return krr("type");
     SEXP call,res,args = R_NilValue;
     int error,p=0;
     char rerr[256];
     char *name = getkstring(x);
-    if (y->t){
+    if (y->t<0||y->t==XT||y->t==XD){
         PROTECT(args = from_any_kobject(y));
         PROTECT(call = Rf_lang2(Rf_install(name), args));
         p=2;
@@ -815,7 +860,9 @@ K rfunc(K x,K y){
             p++;
             SEXP node = args;
             for (R_xlen_t i = 0; i < y->n; ++i) {
-                SEXP val = PROTECT(from_any_kobject(kK(y)[i]));
+                K tt=k_types[y->t](y,i);
+                SEXP val = PROTECT(from_any_kobject(tt));
+                r0(tt);
                 SETCAR(node, val);
                 node = CDR(node);
                 UNPROTECT(1); // val

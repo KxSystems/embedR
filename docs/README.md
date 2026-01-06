@@ -45,13 +45,18 @@ Using this method means data is not passed between remote processes. The library
      ```q
      Rfunc[x;y]
      ```
-     where `x` is the name of the function (string or symbol) and `y` is a mixed list (list of parameters), atom (single parameter), dictionary (single parameter) or table (single parameter). Returns the resulting output from the R code. For example, calling the R substr function
+     where `x` is the name of the function (string or symbol) and `y` is a list/vector (list of parameters), atom (single parameter), dictionary (single parameter) or table (single parameter). Returns the resulting output from the R code. For example, calling the R substr function
      ```q
      Rfunc["substr";("text";1i;2i)]
      ```
      Calling R `max` function with a list of 5 integers
      ```q
      Rfunc["max";enlist "i"$til 5]
+     ```
+     Defining a function with 2 parameters, then calling with 2 integers
+     ```q
+     Rcmd["my_function <- function(x,y) {return (x+y)}"];
+     Rfunc["my_function";2 5i]
      ```
 
 The `R_HOME` environment variable must be set prior to starting q.

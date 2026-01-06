@@ -505,6 +505,11 @@ t)10f~Rfunc["my_function";5i]
 t)10i~Rfunc["length";enlist til 10]
 t)2i~Rfunc["length";(4 5)!(6 7)]
 t)3i~Rfunc["length";([]a:1 2;b:4 5;c:7 8)]
+Rcmd["my_function <- function(x,y) {return (x+y)}"];
+t)7i~Rfunc["my_function";2 5i]
+t)3.3~Rfunc["my_function";1.1 2.2]
+t)"abc def"~Rfunc["paste";`abc`def]
+
 
 
 \\

@@ -499,5 +499,8 @@ t)"string1 string2"~Rfunc["paste";("string1";"string2")]
 t)"te"~Rfunc["substr";("text";1i;2i)]
 Rcmd["my_function <- function(x) {return (5)}"];
 t)5f~Rfunc["my_function";()]
+Rcmd["my_function <- function(x) {return (5+x)}"];
+t)10f~Rfunc["my_function";5.0]
+t)10f~Rfunc["my_function";5i]
 
 \\

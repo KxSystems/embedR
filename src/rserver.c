@@ -800,7 +800,7 @@ K rset(K x,K y) {
 K rfunc(K x,K y){
     if(!RLOAD) return krr("main thread only");
     if (ROPEN < 0) ropen(NULL);
-    if (y->t>0) return krr("type");
+    if (y->t!=XT&&y->t!=XD&&y->t>0) return krr("type");
     SEXP call,res,args = R_NilValue;
     int error,p=0;
     char rerr[256];

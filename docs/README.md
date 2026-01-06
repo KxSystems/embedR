@@ -45,7 +45,7 @@ Using this method means data is not passed between remote processes. The library
      ```q
      Rfunc[x;y]
      ```
-     where `x` is the name of the function (string or symbol) and `y` is a mixed list (list of parameters) or atom (single parameter). Returns the resulting output from the R code. For example, calling the R substr function
+     where `x` is the name of the function (string or symbol) and `y` is a mixed list (list of parameters), atom (single parameter), dictionary (single parameter) or table (single parameter). Returns the resulting output from the R code. For example, calling the R substr function
      ```q
      Rfunc["substr";("text";1i;2i)]
      ```

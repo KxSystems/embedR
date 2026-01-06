@@ -502,5 +502,9 @@ t)5f~Rfunc["my_function";()]
 Rcmd["my_function <- function(x) {return (5+x)}"];
 t)10f~Rfunc["my_function";5.0]
 t)10f~Rfunc["my_function";5i]
+t)10i~Rfunc["length";enlist til 10]
+t)2i~Rfunc["length";(4 5)!(6 7)]
+t)3i~Rfunc["length";([]a:1 2;b:4 5;c:7 8)]
+
 
 \\

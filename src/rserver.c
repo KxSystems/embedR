@@ -800,30 +800,39 @@ K rset(K x,K y) {
 K rfunc(K x,K y){
     if(!RLOAD) return krr("main thread only");
     if (ROPEN < 0) ropen(NULL);
-    if (y->t) return krr("type");
+    if (y->t>0) return krr("type");
     SEXP call,res,args = R_NilValue;
-    int error;
+    int error,p=0;
     char rerr[256];
     char *name = getkstring(x);
-    if (y->n) {
-        PROTECT(args = Rf_allocList(y->n));
-        SEXP node = args;
-        for (R_xlen_t i = 0; i < y->n; ++i) {
-            SEXP val = PROTECT(from_any_kobject(kK(y)[i]));
-            SETCAR(node, val);
-            node = CDR(node);
-            UNPROTECT(1); // val
+    if (y->t){
+        PROTECT(args = from_any_kobject(y));
+        PROTECT(call = Rf_lang2(Rf_install(name), args));
+        p=2;
+    }else{
+        if (y->n) {
+            PROTECT(args = Rf_allocList(y->n));
+            p++;
+            SEXP node = args;
+            for (R_xlen_t i = 0; i < y->n; ++i) {
+                SEXP val = PROTECT(from_any_kobject(kK(y)[i]));
+                SETCAR(node, val);
+                node = CDR(node);
+                UNPROTECT(1); // val
+            }
         }
+        PROTECT(call = Rf_lcons(Rf_install(name), args));
+        p++;
     }
-    PROTECT(call = Rf_lcons(Rf_install(name), args));
     PROTECT(res = R_tryEval(call, R_GlobalEnv, &error));
+    p++;
     if (error) {
         snprintf(rerr,sizeof(rerr),"run error: %s",R_curErrorBuf());
-        UNPROTECT(2+!!(y->n));
+        UNPROTECT(p);
         return krr(rerr);
     }
     K r=from_any_robject(res);
-    UNPROTECT(2+!!(y->n));
+    UNPROTECT(p);
     R_ProcessEvents();
     return r;
 }

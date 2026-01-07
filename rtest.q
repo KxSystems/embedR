@@ -492,24 +492,62 @@ t)(flip[`a`b!(`1`2`1;1#/:("a";"b";"b"))])~Rget"data.table(a=as.factor(c(1,2,1)),
 t)(flip[`a`b!(`1`2`1;`10`20`30)])~Rget"data.table(a=as.factor(c(1,2,1)), b=as.factor(c(10,20,30)))"
 / t)all {.[Rset;("x"; x);"main thread only"~]} peach 2#enlist ([]1 2)   / TODO !!!!!!
 
+// Rfunc General Test
 t)4i~Rfunc["max";enlist "i"$til 5]
 Rcmd["my_function <- function(fname) {paste(fname, \"string2\")}"];
 t)"string1 string2"~Rfunc["my_function";enlist "string1"]
 t)"string1 string2"~Rfunc["paste";("string1";"string2")]
 t)"te"~Rfunc["substr";("text";1i;2i)]
-Rcmd["my_function <- function(x) {return (5)}"];
+Rcmd["my_function <- function(x) {(5)}"];
 t)5f~Rfunc["my_function";()]
-Rcmd["my_function <- function(x) {return (5+x)}"];
+Rcmd["my_function <- function(x) {(5+x)}"];
 t)10f~Rfunc["my_function";5.0]
 t)10f~Rfunc["my_function";5i]
 t)10i~Rfunc["length";enlist til 10]
 t)2i~Rfunc["length";(4 5)!(6 7)]
 t)3i~Rfunc["length";([]a:1 2;b:4 5;c:7 8)]
-Rcmd["my_function <- function(x,y) {return (x+y)}"];
+Rcmd["my_function <- function(x,y) {(x+y)}"];
 t)7i~Rfunc["my_function";2 5i]
 t)3.3~Rfunc["my_function";1.1 2.2]
 t)"abc def"~Rfunc["paste";`abc`def]
 
+// Rfunc single param
+Rcmd["my_function <- function(x) {x}"];
+t)1b~Rfunc["my_function";1b]
+t)(first string x)~Rfunc["my_function";x:1?0Ng]
+t)0x1~Rfunc["my_function";0x1]
+t)1i~Rfunc["my_function";1h]
+t)1i~Rfunc["my_function";1i]
+t)1~Rfunc["my_function";1]
+t)1.1~Rfunc["my_function";1.1]
+t)(enlist "a")~Rfunc["my_function";"a"]
+t)"ab"~Rfunc["my_function";`ab]
+t)2025.07.26D23:59:59.998999999~Rfunc["my_function";2025.07.26D23:59:59.998999999]
+t)13i~Rfunc["my_function";2001.02m]
+t)2001.02.01~Rfunc["my_function";2001.02.01]
+t)1e-09~Rfunc["my_function";00:00:00.000000001]
+t)1i~Rfunc["my_function";00:01]
+t)2i~Rfunc["my_function";00:00:02]
+t)2i~Rfunc["my_function";00:00:00.002]
 
+// Rfunc multiple params
+Rcmd["my_function <- function(x,y) {c(x,y)}"];
+t)x~Rfunc["my_function";x:10b]
+t)(string x)~Rfunc["my_function";x:2?0Ng]
+t)x~Rfunc["my_function";x:0x0102]
+t)(1 2i)~Rfunc["my_function";1 2h]
+t)x~Rfunc["my_function";x:1 2i]
+t)x~Rfunc["my_function";x:1.1 2.2]
+t)(enlist "a";enlist "b")~Rfunc["my_function";"ab"]
+t)("ab";"cd")~Rfunc["my_function";`ab`cd]
+t)(12 13i)~Rfunc["my_function";2001.01 2001.02m]
+t)x~Rfunc["my_function";x:2000.01.01 2000.01.02]
+t)(1e-09 2e-09)~Rfunc["my_function";00:00:00.000000001 00:00:00.000000002]
+t)(1 2i)~Rfunc["my_function";00:01 00:02]
+t)(2 3i)~Rfunc["my_function";00:00:02 00:00:03]
+t)(2 3i)~Rfunc["my_function";00:00:00.002 00:00:00.003]
+Rcmd["my_function <- function(x,y) {list(x,y)}"];
+t)(1 2)~7h$Rfunc["my_function";1 2]
+t)x~Rfunc["my_function";x:("abc";1i)]
 
 \\

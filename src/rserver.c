@@ -9,6 +9,10 @@
 __thread int ROPEN=-1; // initialise thread-local. Will fail in other threads. Ideally need to check if on q main thread.
 __thread int RLOAD=0;
 
+#define CHECK_RLOAD if(!RLOAD) return krr("main thread only");
+#define CHECK_ROPEN if(ROPEN < 0) ropen(NULL);
+#define CHECK_STRING(x) if(xt!=-KS&&abs(xt)!=KC) return krr("type");
+
 /*
  * convert R SEXP into K object.
  */
@@ -629,7 +633,7 @@ ZK from_vector_robject(SEXP sxp)
 /**
  * get k string or symbol name 
  */
-static char * getkstring(K x)
+static char* getkstring(K x)
 {
 	char *s=NULL;
 	switch (xt) {
@@ -692,7 +696,7 @@ K processR(I d){
  */
 K ropen(K x)
 {
-	if(!RLOAD) return krr("main thread only");
+    CHECK_RLOAD
 	if (ROPEN >= 0) return ki(ROPEN);
 	int s,mode=0;	char *argv[] = {"R","--slave"};
 	if (x && (-KI ==x->t || -KJ ==x->t)) mode=(x->t==-KI?x->i:x->j)!=0;
@@ -726,8 +730,8 @@ static char* ParseError[5]={"null","ok","incomplete","error","eof"};
  */
 ZK rexec(int type,K x)
 {
-	if(!RLOAD) return krr("main thread only");
-	if (ROPEN < 0) ropen(NULL);
+    CHECK_RLOAD
+    CHECK_ROPEN
 	SEXP e, p, r, xp;
 	char rerr[256];extern char	R_ParseErrorMsg[256];
 	int error;
@@ -764,8 +768,9 @@ K rget(K x) { return rexec(1,x); }
  * set the R variable named by x (char,char vector,sym), to the value y
  */
 K rset(K x,K y) {
-	if(!RLOAD) return krr("main thread only");
-	if (ROPEN < 0) ropen(NULL);
+    CHECK_RLOAD
+    CHECK_ROPEN
+    CHECK_STRING(x)
 	ParseStatus status;
 	SEXP txt, sym, val;
 	char rerr[256];extern char	R_ParseErrorMsg[256];
@@ -843,8 +848,9 @@ static k_vec_function k_types[] = {
 };
 
 K rfunc(K x,K y){
-    if(!RLOAD) return krr("main thread only");
-    if (ROPEN < 0) ropen(NULL);
+    CHECK_RLOAD
+    CHECK_ROPEN
+    CHECK_STRING(x)
     if (y->t!=XT&&y->t!=XD&&abs(y->t)>KT) return krr("type");
     SEXP call,res,args = R_NilValue;
     int error,p=0;

@@ -642,8 +642,10 @@ static char* getkstring(K x)
 	case KC :
 		s = calloc(1+xn,1); memmove(s, xG, xn); break;
 	case -KS : // TODO: xs is already 0 terminated and fixed. can just return xs
+    {
 		int len = 1+strlen(xs);
 		s = calloc(len,1); memmove(s, xs, len); break;
+    }
 	default : krr("invalid name");
 	}
 	return s;
@@ -733,7 +735,7 @@ ZK rexec(int type,K x)
     CHECK_RLOAD
     CHECK_ROPEN
 	SEXP e, p, r, xp;
-	char rerr[256];extern char	R_ParseErrorMsg[256];
+	char rerr[512];extern char	R_ParseErrorMsg[256];
 	int error;
 	ParseStatus status;
     // create R object from K symbol/string/char
@@ -773,7 +775,7 @@ K rset(K x,K y) {
     CHECK_STRING(x)
 	ParseStatus status;
 	SEXP txt, sym, val;
-	char rerr[256];extern char	R_ParseErrorMsg[256];
+	char rerr[512];extern char	R_ParseErrorMsg[256];
 	char *name = getkstring(x);
 	// generate symbol to check name is valid 
 	PROTECT(txt=allocVector(STRSXP, 1));

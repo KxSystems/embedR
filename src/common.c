@@ -504,9 +504,9 @@ static SEXP from_dictionary_kobject(K x)
  */
 static void make_data_frame(SEXP data)
 {
-	SEXP class_name, row_names; Sint n;
+	SEXP class_name, row_names; int n;
 	PROTECT(data);
-	PROTECT(class_name = NEW_CHARACTER((Sint) 1));
+	PROTECT(class_name = NEW_CHARACTER(1));
 	SET_STRING_ELT(class_name, 0, COPY_TO_USER_STRING("data.frame"));
 	/* Set the row.names. */
 	n = GET_LENGTH(VECTOR_ELT(data,0));

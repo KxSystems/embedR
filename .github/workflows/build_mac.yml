@@ -1,0 +1,29 @@
+name: mac-embedr-build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    env:
+      OUTPUT_FILE: embedrkdb-osx.tgz
+      QHOME: ${{ github.workspace }}/qhome
+
+    steps:
+      - name: Install R
+        run: brew install r
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build
+        run: make

@@ -13,6 +13,20 @@ __thread int RLOAD=0;
 #define CHECK_ROPEN if(ROPEN < 0) ropen(NULL);
 #define CHECK_STRING(x) if(xt!=-KS&&abs(xt)!=KC) return krr("type");
 
+#define EMBEDR_R_VERSION_4_6_0 263680  /* 4*65536 + 6*256 */
+
+#if R_VERSION >= EMBEDR_R_VERSION_4_6_0
+# define EMBEDR_IS_OBJECT(x)       Rf_isObject(x)
+# define EMBEDR_GET_ATTRIBS(x)     R_getAttributes(x)
+# define EMBEDR_CLOSURE_FORMALS(x) R_ClosureFormals(x)
+# define EMBEDR_CLOSURE_BODY(x)    R_ClosureExpr(x)
+#else
+# define EMBEDR_IS_OBJECT(x)       OBJECT(x)
+# define EMBEDR_GET_ATTRIBS(x)     ATTRIB(x)
+# define EMBEDR_CLOSURE_FORMALS(x) FORMALS(x)
+# define EMBEDR_CLOSURE_BODY(x)    BODY(x)
+#endif
+
 /*
  * convert R SEXP into K object.
  */
@@ -40,7 +54,7 @@ ZK from_nyi_robject(S m,SEXP sxp);
 Rboolean isClass(const char *class_, SEXP s) {
   SEXP klass;
   int i;
-  if(OBJECT(s)) {
+  if(EMBEDR_IS_OBJECT(s)) {
     // for an S3 object, the class attribute is a character vector, e.g. c("lm", "oldClass").
     klass= getAttrib(s, R_ClassSymbol);
     // iterate through each class name & check if anything matching provided class
@@ -223,11 +237,10 @@ ZK from_any_robject(SEXP sxp)
 /**
  * Create a 2 element list, first element is a dict of attributes, send element is the value
  */
-ZK addattR (K x,SEXP att)
-{
-	// attrs are pairlists: LISTSXP
-	K u = from_pairlist_robject(att);
-	return knk(2,u,x);
+ZK addattR (K x, SEXP att) {
+  // R_getAttributes() returns a named list equivalent to R's attributes(x)
+  K u = from_any_robject(att);
+  return knk(2, u, x);
 }
 
 /**
@@ -237,7 +250,7 @@ ZK addattR (K x,SEXP att)
 ZK attR(K x,SEXP sxp)
 {
     // fetches the attributes pairlist attached to the R object
-	SEXP att = ATTRIB(sxp);
+	SEXP att = EMBEDR_GET_ATTRIBS(sxp);
 	if (isNull(att)) return x;
 	return addattR(x,att);
 }
@@ -309,8 +322,8 @@ ZK from_pairlist_robject(SEXP sxp)
  */
 ZK from_closure_robject(SEXP sxp)
 {
-	K x = from_any_robject(FORMALS(sxp));
-	K y = from_any_robject(BODY(sxp));
+	K x = from_any_robject(EMBEDR_CLOSURE_FORMALS(sxp));
+	K y = from_any_robject(EMBEDR_CLOSURE_BODY(sxp));
 	return attR(knk(2,x,y),sxp);
 }
 

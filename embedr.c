@@ -6,6 +6,7 @@
 #include <R.h>
 #include <Rdefines.h>
 #include <Rembedded.h>
+#include <Rversion.h>
 #include <time.h>
 #ifndef WIN32
 #include <Rinterface.h>

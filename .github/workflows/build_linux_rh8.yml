@@ -1,0 +1,42 @@
+name: linux-rh8-embedr-build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: rockylinux:8
+
+    env:
+      OUTPUT_FILE: embedrkdb-linux.tgz
+      QHOME: ${{ github.workspace }}/qhome
+
+    steps:
+      - name: Install build tools
+        run: |
+          yum update -y &&
+          yum -y install \
+            gcc \
+            make \
+            wget \
+            tar \
+            gzip
+
+      - name: Install R
+        run: dnf -y install dnf-plugins-core && dnf config-manager --set-enabled powertools && dnf -y install epel-release && dnf clean all && dnf makecache && dnf -y install R
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build
+        run: make

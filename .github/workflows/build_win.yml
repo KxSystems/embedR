@@ -1,0 +1,66 @@
+name: win-embedr-build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    name: Windows 64-bit
+    runs-on: windows-latest
+
+    env:
+      BITS: 64
+      R_ARCH: x64
+      Q_ARCH: w64
+      R_HOME: C:\R
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.4.2"
+
+      - name: Check
+        shell: cmd
+        run: |
+          dir C:\R
+          dir C:\R\bin
+          dir C:\R\bin\x64
+
+      - name: Build embedr.dll
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path w64 | Out-Null
+          & C:\R\bin\x64\R.exe CMD SHLIB -o "w64/embedr.dll" embedr.c src/w64/q.lib -lws2_32 -liphlpapi
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Package distribution
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace '[\\/:*?"<>|]', '-'
+
+          New-Item -ItemType Directory -Force -Path embedr | Out-Null
+          Copy-Item "w64" -Destination ".\embedr\w64" -Recurse
+          Copy-Item rinit.q -Destination .\embedr
+          Copy-Item rtest.q -Destination .\embedr
+          Copy-Item LICENSE -Destination .\embedr\LICENSE.embedr
+          Copy-Item README.md -Destination .\embedr\README.embedr
+
+          7z a "embedr_win64-$version.zip" ".\embedr\*"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: embedr_win64
+          path: embedr_win*.zip
+          if-no-files-found: error

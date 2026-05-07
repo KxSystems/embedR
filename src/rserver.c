@@ -720,17 +720,17 @@ K ropen(K x)
 	s=Rf_initEmbeddedR(argc, argv);
 	if (s<0) return krr("open failed");
 	if(dumb_socketpair(spair, 1) == -1){
-    return krr("Init failed for socketpair");
-  }
+        return krr("Init failed for socketpair");
+    }
 	sd1(-spair[0], &processR);
 	#ifndef WIN32
  	pthread_t t;
-  if(pthread_create(&t, NULL, pingmain, NULL))
-     R krr("poller_thread");
-  pingthread= &t;
+    if(pthread_create(&t, NULL, pingmain, NULL))
+       R krr("poller_thread");
+    pingthread= &t;
  	#else
-  if(_beginthreadex(0,0,pingmain,NULL,0,0)==-1)
-   	R krr("poller_thread");
+    if(_beginthreadex(0,0,pingmain,NULL,0,0)==-1)
+   	    R krr("poller_thread");
 	#endif
 	ROPEN=mode;
 	return ki(ROPEN);
